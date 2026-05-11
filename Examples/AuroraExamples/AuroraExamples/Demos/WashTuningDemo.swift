@@ -5,10 +5,14 @@ struct WashTuningDemo: View {
   private static let defaultSweep: Float = 0.32
   private static let defaultPulse: Float = 0.22
   private static let defaultPeak: Float = 0.28
+  private static let defaultOriginX: Float = 1.0
+  private static let defaultOriginY: Float = 0.5
 
   @State private var sweepDuration: Float = 0.32
   @State private var pulseWidth: Float = 0.22
   @State private var peak: Float = 0.28
+  @State private var originX: Float = 1.0
+  @State private var originY: Float = 0.5
   @State private var replayKey = 0
 
   var body: some View {
@@ -18,6 +22,8 @@ struct WashTuningDemo: View {
         .washSweepDuration(sweepDuration)
         .washPulseWidth(pulseWidth)
         .washPeak(peak)
+        .washOriginX(originX)
+        .washOriginY(originY)
         .ignoresSafeArea()
         .id(replayKey)
       VStack {
@@ -26,6 +32,8 @@ struct WashTuningDemo: View {
           sweepDuration: $sweepDuration,
           pulseWidth: $pulseWidth,
           peak: $peak,
+          originX: $originX,
+          originY: $originY,
           onReplay: replay,
           onReset: resetDefaults
         )
@@ -44,6 +52,8 @@ struct WashTuningDemo: View {
     sweepDuration = Self.defaultSweep
     pulseWidth = Self.defaultPulse
     peak = Self.defaultPeak
+    originX = Self.defaultOriginX
+    originY = Self.defaultOriginY
     replay()
   }
 }
@@ -52,6 +62,8 @@ private struct WashControlPanel: View {
   @Binding var sweepDuration: Float
   @Binding var pulseWidth: Float
   @Binding var peak: Float
+  @Binding var originX: Float
+  @Binding var originY: Float
   let onReplay: () -> Void
   let onReset: () -> Void
 
@@ -73,6 +85,18 @@ private struct WashControlPanel: View {
         label: "Peak",
         value: $peak,
         range: 0.0...0.8,
+        format: "%.2f"
+      )
+      WashSlider(
+        label: "Origin X",
+        value: $originX,
+        range: 0.0...1.0,
+        format: "%.2f"
+      )
+      WashSlider(
+        label: "Origin Y",
+        value: $originY,
+        range: 0.0...1.0,
         format: "%.2f"
       )
       HStack(spacing: 12) {

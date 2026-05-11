@@ -55,6 +55,18 @@ extension AuroraGlow {
     with(\.washPeak, value)
   }
 
+  public func washOriginX(
+    _ value: Float
+  ) -> Self {
+    with(\.washOriginX, value)
+  }
+
+  public func washOriginY(
+    _ value: Float
+  ) -> Self {
+    with(\.washOriginY, value)
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {

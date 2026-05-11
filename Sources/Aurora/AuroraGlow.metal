@@ -104,16 +104,21 @@ inline float introScale(float t) {
 //   pulseWidth    — seconds each pixel stays lit as the wave passes
 //   peak          — maximum alpha contribution at pulse peak (0..1)
 inline float introWashAlpha(
-  float t, float2 position, float2 size,
+  float t, float2 position, float2 size, float2 origin,
   float sweepDuration, float pulseWidth, float peak
 ) {
   if (t < 0.0 || peak <= 0.0) return 0.0;
-  float2 center = size * 0.5;
-  float2 p = position - center;
-  float maxRadius = 0.5 * length(size);
-  float normRadius = length(p) / max(maxRadius, 1.0);
 
-  float arrival = normRadius * sweepDuration;
+  // Farthest reachable pixel from `origin` inside the rectangle is the
+  // diagonal-opposite corner. Compute it from the larger half-extents.
+  float dx = max(origin.x, size.x - origin.x);
+  float dy = max(origin.y, size.y - origin.y);
+  float maxDist = sqrt(dx * dx + dy * dy);
+
+  float distFromOrigin = length(position - origin);
+  float normDist = distFromOrigin / max(maxDist, 1.0);
+
+  float arrival = normDist * sweepDuration;
   float localT  = t - arrival;
   if (localT < 0.0 || localT > pulseWidth) return 0.0;
 
@@ -230,7 +235,8 @@ inline half3 intelligenceLightColor(
                                   float introElapsed,
                                   float4 tuningA,
                                   float4 tuningB,
-                                  float3 washParams
+                                  float3 washParams,
+                                  float2 washOrigin
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -289,8 +295,9 @@ inline half3 intelligenceLightColor(
   // for grain. Max-blended with the edge mask so the edge ring stays at
   // full intensity; the rest of the screen only lights up while the
   // wave passes through it.
+  float2 washOriginPx = float2(washOrigin.x * size.x, washOrigin.y * size.y);
   float washAlpha = introWashAlpha(
-    introElapsed, position, size,
+    introElapsed, position, size, washOriginPx,
     washParams.x, washParams.y, washParams.z
   );
   float washIntensity = washAlpha * (0.55 + 0.45 * (waveValue * 0.5 + 0.5));
