@@ -1,21 +1,6 @@
 import SwiftUI
 
 public struct AuroraGlow: View {
-  /// Hold one as `@State`, attach via `.burster(_:)`, and call `fire()`
-  /// from anywhere to re-run the intro animation.
-  @Observable
-  public final class Burster {
-    public private(set) var lastFiredAt: Date?
-    
-    public init() {
-      self.lastFiredAt = nil
-    }
-    
-    public func fire() {
-      lastFiredAt = Date()
-    }
-  }
-  
   public var profile: Profile
   public var cornerRadius: CGFloat = 55
   public var borderWidth: CGFloat = 6
