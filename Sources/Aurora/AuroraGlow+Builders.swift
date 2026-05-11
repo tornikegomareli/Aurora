@@ -37,12 +37,6 @@ extension AuroraGlow {
     with(\.introOnAppear, value)
   }
 
-  public func mode(
-    _ value: Mode
-  ) -> Self {
-    with(\.mode, value)
-  }
-
   public func burster(
     _ value: Burster?
   ) -> Self {

@@ -24,7 +24,6 @@ struct ContentView: View {
   private func destination(for demo: Demo) -> some View {
     switch demo {
     case .hero: HeroDemo()
-    case .modes: ModeDemo()
     case .liveTuning: LiveTuningDemo()
     case .customProfile: CustomProfileDemo()
     }
