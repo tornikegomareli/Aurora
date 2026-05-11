@@ -78,6 +78,22 @@ inline float burstNoiseSpeed(float t, float decay) {
   return 1.0 + 3.0 * exp(-t * (decay + 0.1));
 }
 
+// Intro envelope: scales the glow's thickness from invisible to full,
+// with a tiny overshoot around p=0.8 before settling. Apple's intro
+// reads as the frame *growing in thickness* on all four sides at once,
+// so we apply this multiplier to both `borderWidth` and `glowSize`.
+// `t < 0` means no intro is in progress and the shader runs at full
+// thickness (used by callers who disabled `introOnAppear`).
+constant float kIntroDuration = 0.7;
+
+inline float introScale(float t) {
+  if (t < 0.0 || t >= kIntroDuration) return 1.0;
+  float p = t / kIntroDuration;
+  float ease = 1.0 - pow(1.0 - p, 3.0);
+  float bump = 0.08 * sin(p * 3.14159);
+  return ease * (1.0 + bump);
+}
+
 /// 3D gradient noise + FBM, computed procedurally
 inline float3 hash33(float3 p) {
   p = float3(
@@ -184,6 +200,7 @@ inline half3 intelligenceLightColor(
                                   float borderWidth,
                                   float glowSize,
                                   float burstElapsed,
+                                  float introElapsed,
                                   float4 tuningA,
                                   float4 tuningB
                                   ) {
@@ -193,10 +210,18 @@ inline half3 intelligenceLightColor(
   float brightnessPop    = tuningA.w;
   float decayRate        = tuningB.x;
   float flameBaseline    = tuningB.y;
-  
+
   float2 center = size * 0.5;
   float2 p = position - center;
-  
+
+  // Intro scales thickness on both sides at once: from ~0 at t=0 up
+  // to ~1.08 around p=0.8, settling at 1.0. Combined with the burst
+  // envelope (color churn + brightness pop) this reproduces the
+  // Apple-Intelligence frame-grows-in-thickness intro.
+  float introMul = introScale(introElapsed);
+  float effectiveBorder = borderWidth * introMul;
+  float effectiveGlow   = glowSize   * introMul;
+
   /// Faithful to Apple's technique the edge gets warped into the black
   /// interior by the noise field, so wave fronts visibly carve against the
   /// dark background instead of just being added on top.
@@ -206,7 +231,7 @@ inline half3 intelligenceLightColor(
   float n2 = gradientNoise3D(float3(uv * 3.6 + float2(11.7, 5.3),
                                     time * noiseScrollSpeed * 0.55));
   float waveValue = n * 0.7 + n2 * 0.35;
-  
+
   /// The clean SDF defines the rounded-rect boundary. The warped SDF lets
   /// the noise field deform it. We take `min(abs(clean), abs(warped))` so
   /// the band width is never *less* than the clean ring, that floor kills
@@ -216,14 +241,14 @@ inline half3 intelligenceLightColor(
   /// outside, full-width clean ring guaranteed on the inside.
   float distRaw = roundedRectSDF(p, center, cornerRadius);
   float flameAmp = burstFlameAmp(burstElapsed, flameAmpBoost, flameBaseline, decayRate);
-  float waveAmount = glowSize * flameAmp;
+  float waveAmount = effectiveGlow * flameAmp;
   float distWarped = distRaw + waveValue * waveAmount;
   float absDist = min(abs(distRaw), abs(distWarped));
-  
+
   // edge band mask
-  float core = smoothstep(borderWidth + 1.0, borderWidth - 1.0, absDist);
-  float mid  = smoothstep(glowSize * 0.6,    0.0,                absDist) * 0.55;
-  float wide = smoothstep(glowSize * 1.4,    0.0,                absDist) * 0.30;
+  float core = smoothstep(effectiveBorder + 1.0, effectiveBorder - 1.0, absDist);
+  float mid  = smoothstep(effectiveGlow * 0.6,   0.0,                   absDist) * 0.55;
+  float wide = smoothstep(effectiveGlow * 1.4,   0.0,                   absDist) * 0.30;
   float maskIntensity = saturate(core + mid + wide);
   
   // subtle per-pixel flicker from the same noise so the boundary

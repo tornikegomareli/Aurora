@@ -30,7 +30,13 @@ extension AuroraGlow {
   ) -> Self {
     with(\.burstsOnAppear, value)
   }
-  
+
+  public func introOnAppear(
+    _ value: Bool
+  ) -> Self {
+    with(\.introOnAppear, value)
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {
