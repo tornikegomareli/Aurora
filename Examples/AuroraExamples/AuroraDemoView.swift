@@ -1,25 +1,12 @@
 import Aurora
 import SwiftUI
 
-/// Sandbox screen for tuning `AuroraGlow` on a real device or
-/// in the Xcode preview canvas. Four sliders pipe straight into the
-/// shader uniforms, a segmented control switches between the three
-/// `Style` presets, a button re-fires the burst envelope, and a toggle
-/// hides/shows the glow so the un-glowed background is comparable.
-///
-/// ## How to run it
-///
-/// - **Xcode previews**: open this file in Xcode and use the preview
-///   canvas. Previews are interactive on Apple Silicon Macs, so the
-///   shader updates live as you drag sliders.
-/// - **Host app**: render `AuroraDemoView()` as your
-///   scene's root content. The view has no external dependencies
-///   beyond `Aurora` itself.
+/// Sandbox screen for tuning `AuroraGlow`'s knobs live — sliders, a
+/// style picker, and a button to re-fire the burst envelope.
 public struct AuroraDemoView: View {
 
   public init() {}
 
-  // Tweakable parameters live as @State so the sliders drive them live.
   @State private var isVisible = true
   @State private var style: AuroraGlow.Style = .standard
   @State private var cornerRadius: CGFloat = 55
@@ -29,7 +16,6 @@ public struct AuroraDemoView: View {
   @State private var controlsCollapsed = false
   @State private var burster = AuroraGlow.Burster()
 
-  // Defaults match the component's own defaults.
   private static let defaultCornerRadius: CGFloat = 55
   private static let defaultBorderWidth: CGFloat = 6
   private static let defaultGlowSize: CGFloat = 28
@@ -60,8 +46,6 @@ public struct AuroraDemoView: View {
     .animation(.spring(duration: 0.35), value: controlsCollapsed)
   }
 
-  // MARK: - Backdrop
-
   private var contentBehindGlow: some View {
     VStack(spacing: 8) {
       Text("π")
@@ -75,8 +59,6 @@ public struct AuroraDemoView: View {
         .foregroundStyle(.white.opacity(0.35))
     }
   }
-
-  // MARK: - Controls
 
   private var controlPanel: some View {
     VStack(spacing: 14) {
@@ -104,7 +86,6 @@ public struct AuroraDemoView: View {
                 range: 0.02...0.6,
                 format: "%.2f")
 
-      // Primary action: re-fire the burst envelope.
       Button(action: triggerBurst) {
         Label("Trigger burst", systemImage: "sparkles")
           .font(.system(size: 15, weight: .semibold))
@@ -113,9 +94,9 @@ public struct AuroraDemoView: View {
           .background(
             LinearGradient(
               colors: [
-                Color(red: 0.984, green: 0.392, blue: 1.000),  // purple
-                Color(red: 1.000, green: 0.145, blue: 0.333),  // pink
-                Color(red: 1.000, green: 0.577, blue: 0.000),  // orange
+                Color(red: 0.984, green: 0.392, blue: 1.000),
+                Color(red: 1.000, green: 0.145, blue: 0.333),
+                Color(red: 1.000, green: 0.577, blue: 0.000),
               ],
               startPoint: .leading,
               endPoint: .trailing
@@ -179,7 +160,7 @@ public struct AuroraDemoView: View {
     .pickerStyle(.segmented)
     .colorScheme(.dark)
     .onChange(of: style) { _, _ in
-      burster.fire()   // re-fire burst so the style change is visible
+      burster.fire()
     }
   }
 
@@ -220,13 +201,9 @@ public struct AuroraDemoView: View {
     }
   }
 
-  // MARK: - Actions
-
   private func toggleVisibility() {
     let wasVisible = isVisible
     isVisible.toggle()
-    // Re-burst on show so toggling the glow on always shows the
-    // characteristic Apple-Intelligence intro animation.
     if !wasVisible {
       burster.fire()
     }
@@ -255,5 +232,4 @@ public struct AuroraDemoView: View {
 
 #Preview("Hidden controls") {
   AuroraDemoView()
-    .onAppear { /* user can tap chevron to hide */ }
 }
