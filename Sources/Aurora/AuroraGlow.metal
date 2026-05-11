@@ -47,6 +47,23 @@ constant float2 kAnchorPhase[11] = {
   float2(0.5, 1.9), float2(2.7, 0.6),
 };
 
+// Static anchor layout for the non-time-driven variants (Saturated,
+// Buddy). Apple's SaturatedV1Frag and BuddyFrag read 6 anchors from a
+// uniforms buffer that the CPU populates — we can't see those values
+// at runtime, only the buffer layout, so these positions are picked
+// from scratch to roughly cover the screen for the metaball blend.
+constant float2 kStaticAnchors[6] = {
+  float2(0.30, 0.20), float2(0.72, 0.28),
+  float2(0.50, 0.48),
+  float2(0.22, 0.68), float2(0.78, 0.72),
+  float2(0.50, 0.88),
+};
+
+constant half3 kStaticAnchorColors[6] = {
+  kColorPurple, kColorPink,   kColorOrange,
+  kColorCyan,   kColorPurple, kColorOrange,
+};
+
 constant float kBurstDuration = 3.5;
 
 inline float burstAmplitude(float t, float ampBoost, float decay) {
@@ -200,6 +217,86 @@ inline half3 intelligenceLightColor(
   color = mix(half3(luma), color, satFactor);
   
   return color;
+}
+
+// Shared 6-anchor metaball colour blend used by the Saturated and
+// Buddy variants. Position is in pixels, anchors are stored as
+// normalised [0,1] coords so they scale to the render size. Falloff
+// reaches a little past the screen so even far pixels feel some
+// influence; the smoothstep weighting gives soft blob edges.
+inline half3 staticAnchorBlend(float2 position, float2 size) {
+  half3 col = kColorBase;
+  float reach = 1.2;
+  for (int i = 0; i < 6; ++i) {
+    float2 anchorPx = kStaticAnchors[i] * size;
+    float d = length(anchorPx - position) / max(size.x, size.y);
+    float fall = clamp((reach - d) / reach, 0.0, 1.0);
+    float t = fall * fall * (3.0 - 2.0 * fall);
+    col = mix(col, kStaticAnchorColors[i], half(t));
+  }
+  return col;
+}
+
+// `auroraGlowSaturated` — vivid, static, full-screen metaball blend.
+// Reproduces the *technique* used in Apple's `IntelligentLightSaturatedV1Frag`:
+// six anchors, no time animation, saturation pushed past 1.0 by
+// extrapolating away from luma. Reads as a still photograph of the
+// colour field, intense and posterised.
+[[ stitchable ]] half4 auroraGlowSaturated(
+  float2 position,
+  half4 color,
+  float2 size
+) {
+  half3 col = staticAnchorBlend(position, size);
+  col *= half(0.75);
+  half luma = dot(col, half3(0.213h, 0.716h, 0.072h));
+  col = mix(half3(luma), col, half(1.4));
+  col = clamp(col, half3(0.0h), half3(1.0h));
+  return half4(col, 1.0h);
+}
+
+// `auroraGlowBuddy` — contrast-shaped static blend. Reproduces the
+// technique behind Apple's `IntelligentLightBuddyFrag`: same six
+// anchors, then a tone curve that knocks out values below ~0.6 and
+// caps highs at ~0.7, giving a darker, more graphic look with crisp
+// transitions between coloured regions.
+[[ stitchable ]] half4 auroraGlowBuddy(
+  float2 position,
+  half4 color,
+  float2 size
+) {
+  half3 col = staticAnchorBlend(position, size);
+  col *= half(0.85);
+  half luma = dot(col, half3(0.213h, 0.716h, 0.072h));
+  col = mix(half3(luma), col, half(1.8));
+  half3 capped = min(col, half3(0.7h));
+  half3 knockout = max(col - half3(0.6h), half3(0.0h)) * half(0.3h);
+  col = clamp(capped + knockout, half3(0.0h), half3(1.0h));
+  return half4(col, 1.0h);
+}
+
+// `auroraGlowNoiseField` — animated full-screen noise-modulated
+// colour. Apple's `IntelligentLightNoiseFullFrag` is just the raw 3D
+// noise sampler; we substitute our procedural FBM and tint it with
+// the static anchor blend. Output alpha tracks the noise so low-value
+// regions are transparent, giving the "wave moving across the
+// screen" feel rather than a flat colour fill.
+[[ stitchable ]] half4 auroraGlowNoiseField(
+  float2 position,
+  half4 color,
+  float2 size,
+  float time
+) {
+  float2 uv = position / max(size.x, size.y);
+  float n  = fbm3D(float3(uv * 2.0, time * 0.3));
+  float n2 = gradientNoise3D(float3(uv * 3.6 + float2(11.7, 5.3), time * 0.2));
+  float wave = n * 0.7 + n2 * 0.35;
+  float waveNorm = clamp(wave * 0.5 + 0.5, 0.0, 1.0);
+
+  half3 col = staticAnchorBlend(position, size);
+  col *= half(waveNorm);
+
+  return half4(col, half(waveNorm));
 }
 
 /// Uniforms

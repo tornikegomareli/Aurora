@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct AuroraGlow: View {
   public var profile: Profile
+  public var mode: Mode = .edgeRing
   public var cornerRadius: CGFloat = 55
   public var borderWidth: CGFloat = 6
   public var glowSize: CGFloat = 28
@@ -42,38 +43,51 @@ public struct AuroraGlow: View {
   }
   
   private func glowRect(in size: CGSize, at now: Date) -> some View {
-    let elapsed = now.timeIntervalSince(startDate)
-    let burstElapsed: Double = burstStartDate.map {
-      now.timeIntervalSince($0)
-    } ?? -1.0
-    let introElapsed: Double = introStartDate.map {
-      now.timeIntervalSince($0)
-    } ?? -1.0
-    let t = profile
-    return Rectangle()
-      .colorEffect(
-        ShaderLibrary.bundle(.module).auroraGlow(
-          .float2(size),
-          .float(elapsed * speed),
-          .float(cornerRadius),
-          .float(borderWidth),
-          .float(glowSize),
-          .float(burstElapsed),
-          .float(introElapsed),
-          .float4(
-            CGFloat(t.anchorAmpBoost),
-            CGFloat(t.anchorSpeedBoost),
-            CGFloat(t.flameAmpBoost),
-            CGFloat(t.brightnessPop)
-          ),
-          .float4(
-            CGFloat(t.decayRate),
-            CGFloat(t.flameBaseline),
-            0.0,
-            0.0
-          )
+    Rectangle().colorEffect(shader(in: size, at: now))
+  }
+
+  private func shader(in size: CGSize, at now: Date) -> Shader {
+    let timeArg = now.timeIntervalSince(startDate) * speed
+    switch mode {
+    case .edgeRing:
+      let burstElapsed: Double = burstStartDate.map {
+        now.timeIntervalSince($0)
+      } ?? -1.0
+      let introElapsed: Double = introStartDate.map {
+        now.timeIntervalSince($0)
+      } ?? -1.0
+      let t = profile
+      return ShaderLibrary.bundle(.module).auroraGlow(
+        .float2(size),
+        .float(timeArg),
+        .float(cornerRadius),
+        .float(borderWidth),
+        .float(glowSize),
+        .float(burstElapsed),
+        .float(introElapsed),
+        .float4(
+          CGFloat(t.anchorAmpBoost),
+          CGFloat(t.anchorSpeedBoost),
+          CGFloat(t.flameAmpBoost),
+          CGFloat(t.brightnessPop)
+        ),
+        .float4(
+          CGFloat(t.decayRate),
+          CGFloat(t.flameBaseline),
+          0.0,
+          0.0
         )
       )
+    case .saturated:
+      return ShaderLibrary.bundle(.module).auroraGlowSaturated(.float2(size))
+    case .buddy:
+      return ShaderLibrary.bundle(.module).auroraGlowBuddy(.float2(size))
+    case .noiseField:
+      return ShaderLibrary.bundle(.module).auroraGlowNoiseField(
+        .float2(size),
+        .float(timeArg)
+      )
+    }
   }
 }
 
