@@ -1,7 +1,6 @@
 import SwiftUI
 
 extension View {
-
   /// Overlay an `AuroraGlow` ring matching the host's frame. Pass
   /// `cornerRadius` to match the host's clip shape.
   public func glow(
