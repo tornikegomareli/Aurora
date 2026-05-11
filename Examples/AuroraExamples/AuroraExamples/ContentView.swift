@@ -26,6 +26,7 @@ struct ContentView: View {
     case .hero: HeroDemo()
     case .liveTuning: LiveTuningDemo()
     case .customProfile: CustomProfileDemo()
+    case .washTuning: WashTuningDemo()
     }
   }
 }

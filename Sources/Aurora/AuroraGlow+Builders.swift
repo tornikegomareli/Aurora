@@ -37,6 +37,24 @@ extension AuroraGlow {
     with(\.introOnAppear, value)
   }
 
+  public func washSweepDuration(
+    _ value: Float
+  ) -> Self {
+    with(\.washSweepDuration, value)
+  }
+
+  public func washPulseWidth(
+    _ value: Float
+  ) -> Self {
+    with(\.washPulseWidth, value)
+  }
+
+  public func washPeak(
+    _ value: Float
+  ) -> Self {
+    with(\.washPeak, value)
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {

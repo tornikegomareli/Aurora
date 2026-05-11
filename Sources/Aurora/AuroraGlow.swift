@@ -8,6 +8,9 @@ public struct AuroraGlow: View {
   public var speed: Double = 0.12
   public var burstsOnAppear: Bool = true
   public var introOnAppear: Bool = true
+  public var washSweepDuration: Float = 0.32
+  public var washPulseWidth: Float = 0.22
+  public var washPeak: Float = 0.28
   public var burster: Burster?
 
   @State private var startDate = Date()
@@ -71,6 +74,11 @@ public struct AuroraGlow: View {
             CGFloat(t.flameBaseline),
             0.0,
             0.0
+          ),
+          .float3(
+            CGFloat(washSweepDuration),
+            CGFloat(washPulseWidth),
+            CGFloat(washPeak)
           )
         )
       )

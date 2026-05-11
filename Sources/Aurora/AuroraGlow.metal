@@ -95,31 +95,30 @@ inline float introScale(float t) {
 }
 
 // Intro wash: a fast semi-transparent pulse that *travels outward*
-// from the centre of the frame, leaving the edge ring as the only
-// thing visible once it passes. Each pixel sees its own short sine
+// from the centre of the frame. Each pixel sees its own short sine
 // pulse, delayed by its normalised distance from centre, so the
-// effect reads as a wave sweeping across the screen — not a uniform
-// flash. Pulse window per-pixel is ~0.22s, total time for the wave
-// front to reach the far corners is ~0.32s; combined the whole wash
-// is finished by ~0.55s. Modulated by the same noise field that
-// drives the edge wave so the colour still has organic grain.
-constant float kWashSweepDuration = 0.32;
-constant float kWashPulseWidth    = 0.22;
-constant float kWashPeak          = 0.28;
-
-inline float introWashAlpha(float t, float2 position, float2 size) {
-  if (t < 0.0) return 0.0;
+// effect reads as a wave sweeping across the screen. All three
+// parameters are passed in as a uniform so callers can tune the
+// feel without recompiling:
+//   sweepDuration — seconds for the wave front to reach the corners
+//   pulseWidth    — seconds each pixel stays lit as the wave passes
+//   peak          — maximum alpha contribution at pulse peak (0..1)
+inline float introWashAlpha(
+  float t, float2 position, float2 size,
+  float sweepDuration, float pulseWidth, float peak
+) {
+  if (t < 0.0 || peak <= 0.0) return 0.0;
   float2 center = size * 0.5;
   float2 p = position - center;
   float maxRadius = 0.5 * length(size);
   float normRadius = length(p) / max(maxRadius, 1.0);
 
-  float arrival = normRadius * kWashSweepDuration;
+  float arrival = normRadius * sweepDuration;
   float localT  = t - arrival;
-  if (localT < 0.0 || localT > kWashPulseWidth) return 0.0;
+  if (localT < 0.0 || localT > pulseWidth) return 0.0;
 
-  float u = localT / kWashPulseWidth;
-  return kWashPeak * sin(u * 3.14159);
+  float u = localT / pulseWidth;
+  return peak * sin(u * 3.14159);
 }
 
 /// 3D gradient noise + FBM, computed procedurally
@@ -230,7 +229,8 @@ inline half3 intelligenceLightColor(
                                   float burstElapsed,
                                   float introElapsed,
                                   float4 tuningA,
-                                  float4 tuningB
+                                  float4 tuningB,
+                                  float3 washParams
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -289,7 +289,10 @@ inline half3 intelligenceLightColor(
   // for grain. Max-blended with the edge mask so the edge ring stays at
   // full intensity; the rest of the screen only lights up while the
   // wave passes through it.
-  float washAlpha = introWashAlpha(introElapsed, position, size);
+  float washAlpha = introWashAlpha(
+    introElapsed, position, size,
+    washParams.x, washParams.y, washParams.z
+  );
   float washIntensity = washAlpha * (0.55 + 0.45 * (waveValue * 0.5 + 0.5));
   maskIntensity = max(maskIntensity, washIntensity);
   
