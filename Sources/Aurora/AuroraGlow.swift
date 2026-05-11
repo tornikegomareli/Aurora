@@ -5,7 +5,7 @@ import SwiftUI
 ///
 /// ## Use
 /// ```swift
-/// AppleIntelligenceGlow(style: .standard).ignoresSafeArea()
+/// AuroraGlow(style: .standard).ignoresSafeArea()
 /// ```
 ///
 /// ## Style
@@ -27,7 +27,7 @@ import SwiftUI
 ///
 /// ```swift
 /// @State private var burst = 0
-/// AppleIntelligenceGlow(burstTrigger: burst)
+/// AuroraGlow(burstTrigger: burst)
 /// Button("Burst") { burst &+= 1 }
 /// ```
 ///
@@ -43,7 +43,7 @@ import SwiftUI
 ///
 /// ## Platform
 /// iOS 17+.
-public struct AppleIntelligenceGlow: View {
+public struct AuroraGlow: View {
 
   // MARK: - Style
 
@@ -172,7 +172,7 @@ public struct AppleIntelligenceGlow: View {
     let t: Tuning = style.tuning
     return Rectangle()
       .colorEffect(
-        ShaderLibrary.bundle(.module).appleIntelligenceGlow(
+        ShaderLibrary.bundle(.module).auroraGlow(
           .float2(size),
           .float(elapsed * speed),
           .float(cornerRadius),
@@ -199,28 +199,28 @@ public struct AppleIntelligenceGlow: View {
 #Preview("Subtle") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AppleIntelligenceGlow(style: .subtle).ignoresSafeArea()
+    AuroraGlow(style: .subtle).ignoresSafeArea()
   }
 }
 
 #Preview("Standard") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AppleIntelligenceGlow(style: .standard).ignoresSafeArea()
+    AuroraGlow(style: .standard).ignoresSafeArea()
   }
 }
 
 #Preview("Dramatic") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AppleIntelligenceGlow(style: .dramatic).ignoresSafeArea()
+    AuroraGlow(style: .dramatic).ignoresSafeArea()
   }
 }
 
 #Preview("Inset card · standard") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AppleIntelligenceGlow(
+    AuroraGlow(
       style: .standard,
       cornerRadius: 24,
       borderWidth: 4,

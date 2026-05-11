@@ -1,7 +1,7 @@
 import Aurora
 import SwiftUI
 
-/// Sandbox screen for tuning `AppleIntelligenceGlow` on a real device or
+/// Sandbox screen for tuning `AuroraGlow` on a real device or
 /// in the Xcode preview canvas. Four sliders pipe straight into the
 /// shader uniforms, a segmented control switches between the three
 /// `Style` presets, a button re-fires the burst envelope, and a toggle
@@ -12,16 +12,16 @@ import SwiftUI
 /// - **Xcode previews**: open this file in Xcode and use the preview
 ///   canvas. Previews are interactive on Apple Silicon Macs, so the
 ///   shader updates live as you drag sliders.
-/// - **Host app**: render `AppleIntelligenceGlowDemoView()` as your
+/// - **Host app**: render `AuroraDemoView()` as your
 ///   scene's root content. The view has no external dependencies
 ///   beyond `Aurora` itself.
-public struct AppleIntelligenceGlowDemoView: View {
+public struct AuroraDemoView: View {
 
   public init() {}
 
   // Tweakable parameters live as @State so the sliders drive them live.
   @State private var isVisible = true
-  @State private var style: AppleIntelligenceGlow.Style = .standard
+  @State private var style: AuroraGlow.Style = .standard
   @State private var cornerRadius: CGFloat = 55
   @State private var borderWidth: CGFloat = 6
   @State private var glowSize: CGFloat = 28
@@ -40,7 +40,7 @@ public struct AppleIntelligenceGlowDemoView: View {
       Color.black.ignoresSafeArea()
       contentBehindGlow
       if isVisible {
-        AppleIntelligenceGlow(
+        AuroraGlow(
           style: style,
           cornerRadius: cornerRadius,
           borderWidth: borderWidth,
@@ -69,7 +69,7 @@ public struct AppleIntelligenceGlowDemoView: View {
       Text("π")
         .font(.system(size: 84, weight: .light, design: .serif))
         .foregroundStyle(.white.opacity(0.85))
-      Text("Apple Intelligence Glow")
+      Text("Aurora Glow")
         .font(.system(size: 18, weight: .semibold, design: .rounded))
         .foregroundStyle(.white.opacity(0.7))
       Text("Live-tune the shader")
@@ -174,7 +174,7 @@ public struct AppleIntelligenceGlowDemoView: View {
 
   private var stylePicker: some View {
     Picker("Style", selection: $style) {
-      ForEach(AppleIntelligenceGlow.Style.allCases, id: \.self) { s in
+      ForEach(AuroraGlow.Style.allCases, id: \.self) { s in
         Text(s.rawValue.capitalized).tag(s)
       }
     }
@@ -252,10 +252,10 @@ public struct AppleIntelligenceGlowDemoView: View {
 }
 
 #Preview("Default") {
-  AppleIntelligenceGlowDemoView()
+  AuroraDemoView()
 }
 
 #Preview("Hidden controls") {
-  AppleIntelligenceGlowDemoView()
+  AuroraDemoView()
     .onAppear { /* user can tap chevron to hide */ }
 }

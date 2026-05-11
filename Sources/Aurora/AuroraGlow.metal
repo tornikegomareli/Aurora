@@ -198,7 +198,7 @@ inline half3 intelligenceLightColor(
 // tuningA = (anchorAmpBoost, anchorSpeedBoost, flameAmpBoost, brightnessPop)
 // tuningB = (decayRate,      flameBaseline,    [reserved],    [reserved])
 
-[[ stitchable ]] half4 appleIntelligenceGlow(
+[[ stitchable ]] half4 auroraGlow(
   float2 position,
   half4 color,
   float2 size,
