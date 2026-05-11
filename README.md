@@ -116,10 +116,15 @@ struct AssistantView: View {
 }
 ```
 
-`Burster` is an `@Observable` reference type — the view subscribes to
-its `lastFiredAt` and re-runs the burst envelope whenever you call
-`fire()`. Works just as well from inside async code, TCA effects,
-NotificationCenter handlers, or anywhere else outside the SwiftUI tree.
+`Burster` is an `@Observable`, `@MainActor`-isolated reference type —
+the view subscribes to its `lastFiredAt` and re-runs the burst envelope
+whenever you call `fire()`. From off-main contexts (TCA effects,
+detached tasks, NotificationCenter handlers) hop to the main actor
+first:
+
+```swift
+Task { @MainActor in burster.fire() }
+```
 
 ## Live tuning
 

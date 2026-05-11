@@ -36,6 +36,7 @@ struct StyleProfileTests {
   }
 }
 
+@MainActor
 @Suite("AuroraGlow.Burster")
 struct BursterTests {
 
