@@ -27,7 +27,7 @@ public struct AuroraDemoView: View {
   @State private var glowSize: CGFloat = 28
   @State private var speed: Double = 0.12
   @State private var controlsCollapsed = false
-  @State private var burstCount: Int = 0
+  @State private var burster = AuroraGlow.Burster()
 
   // Defaults match the component's own defaults.
   private static let defaultCornerRadius: CGFloat = 55
@@ -46,7 +46,7 @@ public struct AuroraDemoView: View {
           borderWidth: borderWidth,
           glowSize: glowSize,
           speed: speed,
-          burstTrigger: burstCount
+          burster: burster
         )
         .ignoresSafeArea()
         .transition(.opacity)
@@ -181,7 +181,7 @@ public struct AuroraDemoView: View {
     .pickerStyle(.segmented)
     .colorScheme(.dark)
     .onChange(of: style) { _, _ in
-      burstCount &+= 1   // re-fire burst so the style change is visible
+      burster.fire()   // re-fire burst so the style change is visible
     }
   }
 
@@ -230,7 +230,7 @@ public struct AuroraDemoView: View {
     // Re-burst on show so toggling the glow on always shows the
     // characteristic Apple-Intelligence intro animation.
     if !wasVisible {
-      burstCount &+= 1
+      burster.fire()
     }
   }
 
@@ -239,11 +239,11 @@ public struct AuroraDemoView: View {
     borderWidth = Self.defaultBorderWidth
     glowSize = Self.defaultGlowSize
     speed = Self.defaultSpeed
-    burstCount &+= 1
+    burster.fire()
   }
 
   private func triggerBurst() {
-    burstCount &+= 1
+    burster.fire()
   }
 
   private var activeChipCount: String {

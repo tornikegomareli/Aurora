@@ -21,14 +21,15 @@ import SwiftUI
 ///
 /// ## Burst
 ///
-/// `burstTrigger` is an opaque `Hashable`. Whenever its value changes the
-/// shader's burst envelope re-fires from `t = 0`. The first burst happens
-/// on appear unless `burstsOnAppear` is `false`.
+/// The shader runs a "burst" envelope at intro: a damped-cosine bounce
+/// in the colour anchors, a brightness pop, and bigger flame tongues.
+/// It happens automatically on appear (unless `burstsOnAppear` is
+/// `false`) and can be re-fired any time through a `Burster`.
 ///
 /// ```swift
-/// @State private var burst = 0
-/// AuroraGlow(burstTrigger: burst)
-/// Button("Burst") { burst &+= 1 }
+/// @State private var burster = AuroraGlow.Burster()
+/// AuroraGlow(.standard, burster: burster)
+/// Button("Burst again") { burster.fire() }
 /// ```
 ///
 /// ## Parameters
@@ -39,7 +40,7 @@ import SwiftUI
 /// - `speed`: baseline anchor animation rate. Default `0.12`. The burst
 ///   envelope scales this on top.
 /// - `burstsOnAppear`: trigger an initial burst when mounted. Default `true`.
-/// - `burstTrigger`: change to re-fire the burst.
+/// - `burster`: optional `Burster` for re-firing the burst from outside.
 ///
 /// ## Platform
 /// iOS 17+.
@@ -132,6 +133,33 @@ public struct AuroraGlow: View {
     }
   }
 
+  // MARK: - Burster
+
+  /// Drives the burst-restart envelope from outside the view. Hold one
+  /// as `@State` (or anywhere with a stable identity) and pass it to
+  /// `AuroraGlow`. Call `fire()` to re-run the intro animation from `t = 0`.
+  ///
+  /// ```swift
+  /// @State private var burster = AuroraGlow.Burster()
+  /// AuroraGlow(.standard, burster: burster)
+  /// Button("Burst again") { burster.fire() }
+  /// ```
+  ///
+  /// `lastFiredAt` is the timestamp of the most recent `fire()`; the
+  /// view observes it and re-fires the burst envelope when it changes.
+  @Observable
+  public final class Burster {
+    public private(set) var lastFiredAt: Date?
+
+    public init() {
+      self.lastFiredAt = nil
+    }
+
+    public func fire() {
+      lastFiredAt = Date()
+    }
+  }
+
   // MARK: - Public API
 
   public var style: Style
@@ -140,7 +168,7 @@ public struct AuroraGlow: View {
   public var glowSize: CGFloat
   public var speed: Double
   public var burstsOnAppear: Bool
-  public var burstTrigger: AnyHashable?
+  public var burster: Burster?
 
   public init(
     style: Style = .standard,
@@ -149,7 +177,7 @@ public struct AuroraGlow: View {
     glowSize: CGFloat = 28,
     speed: Double = 0.12,
     burstsOnAppear: Bool = true,
-    burstTrigger: AnyHashable? = nil
+    burster: Burster? = nil
   ) {
     self.style = style
     self.cornerRadius = cornerRadius
@@ -157,7 +185,7 @@ public struct AuroraGlow: View {
     self.glowSize = glowSize
     self.speed = speed
     self.burstsOnAppear = burstsOnAppear
-    self.burstTrigger = burstTrigger
+    self.burster = burster
   }
 
   // MARK: - Internal state
@@ -177,8 +205,8 @@ public struct AuroraGlow: View {
     .onAppear {
       if burstsOnAppear { burstStartDate = Date() }
     }
-    .onChange(of: burstTrigger) { _, _ in
-      burstStartDate = Date()
+    .onChange(of: burster?.lastFiredAt) { _, newValue in
+      if let newValue { burstStartDate = newValue }
     }
   }
 
