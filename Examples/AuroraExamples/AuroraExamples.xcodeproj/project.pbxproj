@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9E6168CC2FB28E6C00A21769 /* Aurora in Frameworks */ = {isa = PBXBuildFile; productRef = 9E6168CB2FB28E6C00A21769 /* Aurora */; };
+		9E6168CF2FB28F5300A21769 /* Aurora in Frameworks */ = {isa = PBXBuildFile; productRef = 9E6168CE2FB28F5300A21769 /* Aurora */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E6168CF2FB28F5300A21769 /* Aurora in Frameworks */,
 				9E6168CC2FB28E6C00A21769 /* Aurora in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +73,7 @@
 			name = AuroraExamples;
 			packageProductDependencies = (
 				9E6168CB2FB28E6C00A21769 /* Aurora */,
+				9E6168CE2FB28F5300A21769 /* Aurora */,
 			);
 			productName = AuroraExamples;
 			productReference = 9E6168BC2FB28CFB00A21769 /* AuroraExamples.app */;
@@ -101,6 +104,7 @@
 			mainGroup = 9E6168B32FB28CFB00A21769;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				9E6168CD2FB28F5300A21769 /* XCRemoteSwiftPackageReference "Aurora" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9E6168BD2FB28CFB00A21769 /* Products */;
@@ -341,9 +345,25 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		9E6168CD2FB28F5300A21769 /* XCRemoteSwiftPackageReference "Aurora" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tornikegomareli/Aurora";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		9E6168CB2FB28E6C00A21769 /* Aurora */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = Aurora;
+		};
+		9E6168CE2FB28F5300A21769 /* Aurora */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E6168CD2FB28F5300A21769 /* XCRemoteSwiftPackageReference "Aurora" */;
 			productName = Aurora;
 		};
 /* End XCSwiftPackageProductDependency section */
