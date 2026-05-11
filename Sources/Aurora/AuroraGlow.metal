@@ -94,6 +94,20 @@ inline float introScale(float t) {
   return ease * (1.0 + bump);
 }
 
+// Intro wash: a semi-transparent colored pulse that covers the full
+// frame during intro, layered behind the edge ring. Apple's intro
+// uses a separate unmasked render pass on top of the masked edge
+// pass; we reproduce the same look in one shader by adding a
+// full-screen alpha contribution that peaks mid-intro and fades back
+// to zero by the time intro completes. Modulated by the same noise
+// field that drives the edge wave, so the wash reads as a flowing
+// colorful haze, not a flat overlay.
+inline float introWashAlpha(float t) {
+  if (t < 0.0 || t >= kIntroDuration) return 0.0;
+  float p = t / kIntroDuration;
+  return 0.45 * sin(p * 3.14159);
+}
+
 /// 3D gradient noise + FBM, computed procedurally
 inline float3 hash33(float3 p) {
   p = float3(
@@ -250,11 +264,21 @@ inline half3 intelligenceLightColor(
   float mid  = smoothstep(effectiveGlow * 0.6,   0.0,                   absDist) * 0.55;
   float wide = smoothstep(effectiveGlow * 1.4,   0.0,                   absDist) * 0.30;
   float maskIntensity = saturate(core + mid + wide);
-  
+
   // subtle per-pixel flicker from the same noise so the boundary
   // shimmers even at rest
   float flicker = 0.88 + 0.18 * (waveValue * 0.5 + 0.5);
   maskIntensity *= flicker;
+
+  // Full-screen intro wash: peaks once mid-intro then fades. The wash
+  // hits every pixel, not just the edge band, modulated by the noise
+  // field so it reads as a moving haze of colour rather than a flat
+  // overlay. We take max with the edge mask so the edge ring keeps
+  // full intensity; the rest of the screen only lights up while the
+  // wash envelope is non-zero.
+  float washAlpha = introWashAlpha(introElapsed);
+  float washIntensity = washAlpha * (0.55 + 0.45 * (waveValue * 0.5 + 0.5));
+  maskIntensity = max(maskIntensity, washIntensity);
   
   float reach = 0.55 * max(size.x, size.y);
   half3 lit = intelligenceLightColor(
@@ -265,6 +289,15 @@ inline half3 intelligenceLightColor(
                                      );
   
   lit *= half(0.95 * burstBrightness(burstElapsed, brightnessPop, decayRate));
-  
+
+  // While the wash is active, lift saturation by extrapolating away
+  // from luma. This mirrors what Apple's `SaturatedV1Frag` does with
+  // its `mix(luma, color, 1.5)` trick — pushes the colours past the
+  // gray axis so the pulse reads as more vivid than the steady-state
+  // ring. Settles back to neutral once wash returns to 0.
+  half washLuma = dot(lit, half3(0.213h, 0.716h, 0.072h));
+  half satFactor = half(1.0) + half(washAlpha) * half(0.5);
+  lit = mix(half3(washLuma), lit, satFactor);
+
   return half4(lit * half(maskIntensity), half(maskIntensity));
 }

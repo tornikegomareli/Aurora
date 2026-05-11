@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tornikegomareli/Aurora",
       "state" : {
-        "revision" : "d35a2b4b13ad88b3c0169d6dcf45e87849631fb6",
-        "version" : "0.1.0"
+        "branch" : "intro-animation",
+        "revision" : "8ff6ab358ba2c40f62c679950b7c0e2dda29c573"
       }
     }
   ],
