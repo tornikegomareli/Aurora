@@ -5,7 +5,7 @@ import SwiftUI
 ///
 /// ## Use
 /// ```swift
-/// AuroraGlow(style: .standard).ignoresSafeArea()
+/// AuroraGlow(.standard).ignoresSafeArea()
 /// ```
 ///
 /// ## Style
@@ -160,32 +160,96 @@ public struct AuroraGlow: View {
     }
   }
 
-  // MARK: - Public API
+  // MARK: - Storage
 
-  public var style: Style
-  public var cornerRadius: CGFloat
-  public var borderWidth: CGFloat
-  public var glowSize: CGFloat
-  public var speed: Double
-  public var burstsOnAppear: Bool
+  /// The actual numeric tuning sent to the shader. Derived from a
+  /// `Style` preset via `init(_:)`, or supplied directly via
+  /// `init(profile:)`.
+  public var profile: Profile
+
+  /// Outer rounded-rect radius. Default `55`.
+  public var cornerRadius: CGFloat = 55
+
+  /// Width of the sharp inner ring. Default `6`.
+  public var borderWidth: CGFloat = 6
+
+  /// Outer aura extent in points. Default `28`.
+  public var glowSize: CGFloat = 28
+
+  /// Baseline anchor animation rate. The burst envelope scales this
+  /// on top. Default `0.12`.
+  public var speed: Double = 0.12
+
+  /// Whether to trigger a burst when the view first appears. Default `true`.
+  public var burstsOnAppear: Bool = true
+
+  /// Optional external controller. Call `burster.fire()` from anywhere
+  /// (button taps, TCA effects, scroll callbacks) to re-fire the burst
+  /// envelope without faking `@State` changes.
   public var burster: Burster?
 
-  public init(
-    style: Style = .standard,
-    cornerRadius: CGFloat = 55,
-    borderWidth: CGFloat = 6,
-    glowSize: CGFloat = 28,
-    speed: Double = 0.12,
-    burstsOnAppear: Bool = true,
-    burster: Burster? = nil
-  ) {
-    self.style = style
-    self.cornerRadius = cornerRadius
-    self.borderWidth = borderWidth
-    self.glowSize = glowSize
-    self.speed = speed
-    self.burstsOnAppear = burstsOnAppear
-    self.burster = burster
+  // MARK: - Initializers
+
+  /// Build a glow from one of the named presets.
+  ///
+  /// ```swift
+  /// AuroraGlow(.standard)
+  ///   .cornerRadius(24)
+  ///   .glowSize(18)
+  /// ```
+  public init(_ style: Style = .standard) {
+    self.profile = style.profile
+  }
+
+  /// Build a glow from a hand-tuned `Profile`. Use this when none of
+  /// the presets feel right.
+  public init(profile: Profile) {
+    self.profile = profile
+  }
+
+  // MARK: - Modifiers
+
+  /// Override the outer rounded-rect radius.
+  public func cornerRadius(_ value: CGFloat) -> Self {
+    var copy = self
+    copy.cornerRadius = value
+    return copy
+  }
+
+  /// Override the inner ring width.
+  public func borderWidth(_ value: CGFloat) -> Self {
+    var copy = self
+    copy.borderWidth = value
+    return copy
+  }
+
+  /// Override the outer aura extent.
+  public func glowSize(_ value: CGFloat) -> Self {
+    var copy = self
+    copy.glowSize = value
+    return copy
+  }
+
+  /// Override the baseline animation rate.
+  public func speed(_ value: Double) -> Self {
+    var copy = self
+    copy.speed = value
+    return copy
+  }
+
+  /// Disable the automatic burst on appear.
+  public func burstsOnAppear(_ value: Bool) -> Self {
+    var copy = self
+    copy.burstsOnAppear = value
+    return copy
+  }
+
+  /// Attach a `Burster` so the burst envelope can be re-fired from
+  /// outside the view.
+  public func burster(_ value: Burster?) -> Self {
+    var copy = self
+    copy.burster = value
+    return copy
   }
 
   // MARK: - Internal state
@@ -215,7 +279,7 @@ public struct AuroraGlow: View {
     let burstElapsed: Double = burstStartDate.map {
       now.timeIntervalSince($0)
     } ?? -1.0
-    let t: Profile = style.profile
+    let t = profile
     return Rectangle()
       .colorEffect(
         ShaderLibrary.bundle(.module).auroraGlow(
@@ -245,33 +309,31 @@ public struct AuroraGlow: View {
 #Preview("Subtle") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AuroraGlow(style: .subtle).ignoresSafeArea()
+    AuroraGlow(.subtle).ignoresSafeArea()
   }
 }
 
 #Preview("Standard") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AuroraGlow(style: .standard).ignoresSafeArea()
+    AuroraGlow(.standard).ignoresSafeArea()
   }
 }
 
 #Preview("Dramatic") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AuroraGlow(style: .dramatic).ignoresSafeArea()
+    AuroraGlow(.dramatic).ignoresSafeArea()
   }
 }
 
 #Preview("Inset card · standard") {
   ZStack {
     Color.black.ignoresSafeArea()
-    AuroraGlow(
-      style: .standard,
-      cornerRadius: 24,
-      borderWidth: 4,
-      glowSize: 18
-    )
-    .frame(width: 280, height: 360)
+    AuroraGlow(.standard)
+      .cornerRadius(24)
+      .borderWidth(4)
+      .glowSize(18)
+      .frame(width: 280, height: 360)
   }
 }

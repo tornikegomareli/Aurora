@@ -40,16 +40,14 @@ public struct AuroraDemoView: View {
       Color.black.ignoresSafeArea()
       contentBehindGlow
       if isVisible {
-        AuroraGlow(
-          style: style,
-          cornerRadius: cornerRadius,
-          borderWidth: borderWidth,
-          glowSize: glowSize,
-          speed: speed,
-          burster: burster
-        )
-        .ignoresSafeArea()
-        .transition(.opacity)
+        AuroraGlow(style)
+          .cornerRadius(cornerRadius)
+          .borderWidth(borderWidth)
+          .glowSize(glowSize)
+          .speed(speed)
+          .burster(burster)
+          .ignoresSafeArea()
+          .transition(.opacity)
       }
       VStack(spacing: 0) {
         Spacer()
