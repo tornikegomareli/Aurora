@@ -48,17 +48,17 @@ public struct AuroraGlow: View {
   // MARK: - Style
 
   /// Pre-tuned variant of the animation. Each style maps to a fixed
-  /// `Tuning` that gets handed to the shader. Pick by feel — see the
+  /// `Profile` that gets handed to the shader. Pick by feel — see the
   /// component-level doc comment for guidance.
   public enum Style: String, CaseIterable, Hashable, Sendable {
     case subtle
     case standard
     case dramatic
 
-    internal var tuning: Tuning {
+    public var profile: Profile {
       switch self {
       case .subtle:
-        return Tuning(
+        return Profile(
           anchorAmpBoost: 0.22,
           anchorSpeedBoost: 1.4,
           flameAmpBoost: 1.2,
@@ -67,7 +67,7 @@ public struct AuroraGlow: View {
           flameBaseline: 0.30
         )
       case .standard:
-        return Tuning(
+        return Profile(
           anchorAmpBoost: 0.38,
           anchorSpeedBoost: 2.2,
           flameAmpBoost: 2.0,
@@ -76,7 +76,7 @@ public struct AuroraGlow: View {
           flameBaseline: 0.45
         )
       case .dramatic:
-        return Tuning(
+        return Profile(
           anchorAmpBoost: 0.55,
           anchorSpeedBoost: 3.5,
           flameAmpBoost: 4.0,
@@ -88,30 +88,48 @@ public struct AuroraGlow: View {
     }
   }
 
-  /// Per-style shader knobs. The values are passed straight to the
-  /// fragment shader as two `float4` uniforms.
-  struct Tuning: Sendable, Equatable {
+  /// The numeric knobs that drive the shader. A `Style` is a named
+  /// preset; a `Profile` is the actual values that get sent to the
+  /// shader's two `float4` uniforms. Build one by hand to dial in a
+  /// custom feel without picking one of the presets.
+  public struct Profile: Sendable, Equatable {
     /// Damped-cosine amplitude added to anchor amplitude at burst start.
     /// Anchors visibly bounce outward and back. Higher = bigger bounce.
-    var anchorAmpBoost: Float
+    public var anchorAmpBoost: Float
 
     /// Exponential boost added to anchor animation speed at burst start.
     /// Higher = faster colour churn during the intro.
-    var anchorSpeedBoost: Float
+    public var anchorSpeedBoost: Float
 
     /// Exponential boost added to the flame overlay's amplitude. Higher
     /// = bigger inward-reaching flame tongues during burst.
-    var flameAmpBoost: Float
+    public var flameAmpBoost: Float
 
     /// Exponential brightness pop applied uniformly at burst start.
-    var brightnessPop: Float
+    public var brightnessPop: Float
 
     /// Decay rate of all envelopes (1 / seconds). Higher = settles faster.
-    var decayRate: Float
+    public var decayRate: Float
 
     /// Flame overlay amplitude in steady state. Even at rest, flames
     /// remain at this fraction so the boundary has organic life.
-    var flameBaseline: Float
+    public var flameBaseline: Float
+
+    public init(
+      anchorAmpBoost: Float,
+      anchorSpeedBoost: Float,
+      flameAmpBoost: Float,
+      brightnessPop: Float,
+      decayRate: Float,
+      flameBaseline: Float
+    ) {
+      self.anchorAmpBoost = anchorAmpBoost
+      self.anchorSpeedBoost = anchorSpeedBoost
+      self.flameAmpBoost = flameAmpBoost
+      self.brightnessPop = brightnessPop
+      self.decayRate = decayRate
+      self.flameBaseline = flameBaseline
+    }
   }
 
   // MARK: - Public API
@@ -169,7 +187,7 @@ public struct AuroraGlow: View {
     let burstElapsed: Double = burstStartDate.map {
       now.timeIntervalSince($0)
     } ?? -1.0
-    let t: Tuning = style.tuning
+    let t: Profile = style.profile
     return Rectangle()
       .colorEffect(
         ShaderLibrary.bundle(.module).auroraGlow(
