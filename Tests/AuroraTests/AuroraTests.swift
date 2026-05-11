@@ -90,6 +90,7 @@ struct InitTests {
     #expect(glow.glowSize == 28)
     #expect(glow.speed == 0.12)
     #expect(glow.burstsOnAppear == true)
+    #expect(glow.introOnAppear == true)
     #expect(glow.burster == nil)
   }
 
@@ -100,10 +101,12 @@ struct InitTests {
       .glowSize(18)
       .speed(0.2)
       .burstsOnAppear(false)
+      .introOnAppear(false)
     #expect(glow.cornerRadius == 24)
     #expect(glow.borderWidth == 4)
     #expect(glow.glowSize == 18)
     #expect(glow.speed == 0.2)
     #expect(glow.burstsOnAppear == false)
+    #expect(glow.introOnAppear == false)
   }
 }
