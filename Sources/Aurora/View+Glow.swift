@@ -23,26 +23,27 @@ extension View {
   ZStack {
     Color.black.ignoresSafeArea()
     VStack(spacing: 28) {
-      glowCard(title: "Subtle", style: .subtle)
-      glowCard(title: "Standard", style: .standard)
-      glowCard(title: "Dramatic", style: .dramatic)
+      GlowCard(title: "Subtle", style: .subtle)
+      GlowCard(title: "Standard", style: .standard)
+      GlowCard(title: "Dramatic", style: .dramatic)
     }
     .padding(24)
   }
 }
 
-@ViewBuilder
-private func glowCard(
-  title: String,
-  style: AuroraGlow.Style
-) -> some View {
-  RoundedRectangle(cornerRadius: 24, style: .continuous)
-    .fill(Color(white: 0.08))
-    .frame(height: 90)
-    .overlay {
-      Text(title)
-        .font(.system(size: 18, weight: .semibold, design: .rounded))
-        .foregroundStyle(.white)
-    }
-    .glow(style, cornerRadius: 24)
+private struct GlowCard: View {
+  let title: String
+  let style: AuroraGlow.Style
+
+  var body: some View {
+    RoundedRectangle(cornerRadius: 24, style: .continuous)
+      .fill(Color(white: 0.08))
+      .frame(height: 90)
+      .overlay {
+        Text(title)
+          .font(.system(size: 18, weight: .semibold, design: .rounded))
+          .foregroundStyle(.white)
+      }
+      .glow(style, cornerRadius: 24)
+  }
 }
