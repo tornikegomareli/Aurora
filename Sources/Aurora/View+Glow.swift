@@ -2,23 +2,8 @@ import SwiftUI
 
 extension View {
 
-  /// Overlay an `AuroraGlow` ring matching the host view's frame.
-  ///
-  /// The shortest path to a glowing card or button:
-  ///
-  /// ```swift
-  /// Card()
-  ///   .padding()
-  ///   .glow(.standard, cornerRadius: 24)
-  /// ```
-  ///
-  /// `cornerRadius` should match whatever clip shape your host view
-  /// uses so the glow band lines up with the visible edge.
-  ///
-  /// - Parameters:
-  ///   - style: which preset feel to use. Defaults to `.standard`.
-  ///   - cornerRadius: corner radius of the glow's rounded-rect band.
-  ///     Defaults to `24`.
+  /// Overlay an `AuroraGlow` ring matching the host's frame. Pass
+  /// `cornerRadius` to match the host's clip shape.
   public func glow(
     _ style: AuroraGlow.Style = .standard,
     cornerRadius: CGFloat = 24
@@ -28,20 +13,8 @@ extension View {
     }
   }
 
-  /// Overlay a pre-configured `AuroraGlow`. Use this when you need
-  /// more than corner radius — adjusting `glowSize`, `borderWidth`,
-  /// `speed`, or attaching a `Burster`.
-  ///
-  /// ```swift
-  /// @State private var burster = AuroraGlow.Burster()
-  ///
-  /// Card().glow(
-  ///   AuroraGlow(.dramatic)
-  ///     .cornerRadius(24)
-  ///     .borderWidth(8)
-  ///     .burster(burster)
-  /// )
-  /// ```
+  /// Overlay a pre-configured `AuroraGlow` — use when you need to
+  /// tweak glow size, border, speed, or attach a `Burster`.
   public func glow(_ glow: AuroraGlow) -> some View {
     overlay { glow }
   }
