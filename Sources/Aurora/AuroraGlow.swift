@@ -8,18 +8,18 @@ public struct AuroraGlow: View {
   public var speed: Double = 0.12
   public var burstsOnAppear: Bool = true
   public var burster: Burster?
-  
+
+  @State private var startDate = Date()
+  @State private var burstStartDate: Date? = nil
+
   public init(_ style: Style = .standard) {
     self.profile = style.profile
   }
-  
+
   public init(profile: Profile) {
     self.profile = profile
   }
 
-  @State private var startDate = Date()
-  @State private var burstStartDate: Date? = nil
-  
   public var body: some View {
     GeometryReader { proxy in
       TimelineView(.animation) { context in
