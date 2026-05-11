@@ -33,8 +33,6 @@
 
 using namespace metal;
 
-// MARK: - Palette
-
 constant half3 kColorBase   = half3(0.000h, 0.588h, 1.000h);
 constant half3 kColorPurple = half3(0.983h, 0.392h, 1.000h);
 constant half3 kColorPink   = half3(1.000h, 0.145h, 0.333h);
@@ -59,8 +57,6 @@ constant float2 kAnchorPhase[11] = {
   float2(0.3, 1.5), float2(2.5, 0.8), float2(1.2, 2.0),
   float2(0.5, 1.9), float2(2.7, 0.6),
 };
-
-// MARK: - Burst envelopes (style-parameterised)
 
 constant float kBurstDuration = 3.5;
 
@@ -93,8 +89,9 @@ inline float burstNoiseSpeed(float t, float decay) {
   return 1.0 + 3.0 * exp(-t * (decay + 0.1));
 }
 
-// MARK: - 3D gradient noise + FBM (canonical Inigo-Quilez-style;
-// rewritten from scratch — Apple uses a baked texture instead).
+// 3D gradient noise + FBM, computed procedurally. Apple's original
+// shader samples a baked noise texture instead — we don't ship that
+// asset, so the same wavy field is reproduced with math.
 
 inline float3 hash33(float3 p) {
   p = float3(
@@ -136,8 +133,6 @@ inline float fbm3D(float3 p) {
   return v;
 }
 
-// MARK: - Geometry helpers
-
 inline float roundedRectSDF(float2 p, float2 halfSize, float cornerRadius) {
   float2 q = abs(p) - halfSize + cornerRadius;
   return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - cornerRadius;
@@ -168,8 +163,6 @@ inline float2 anchorPosition(
   return norm * size;
 }
 
-// MARK: - Colour blend
-
 inline half3 intelligenceLightColor(
   float2 xyPos, float2 size,
   float time, float burstT,
@@ -193,10 +186,9 @@ inline half3 intelligenceLightColor(
   return color;
 }
 
-// MARK: - Entry point
-//
-// tuningA = (anchorAmpBoost, anchorSpeedBoost, flameAmpBoost, brightnessPop)
-// tuningB = (decayRate,      flameBaseline,    [reserved],    [reserved])
+// Uniforms:
+//   tuningA = (anchorAmpBoost, anchorSpeedBoost, flameAmpBoost, brightnessPop)
+//   tuningB = (decayRate,      flameBaseline,    [reserved],    [reserved])
 
 [[ stitchable ]] half4 auroraGlow(
   float2 position,
