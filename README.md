@@ -1,5 +1,6 @@
-Most accurate simple customizable SwiftUI component for Apple Intelligence style glow, backed with Metal Shaders.
-
+<p align="center">
+  <h1 align="center">Aurora</h1>
+</p>
 <p align="center">
   <img src="https://img.shields.io/badge/Swift-5.9+-orange.svg" />
   <img src="https://img.shields.io/badge/iOS-17.0+-blue.svg" />
