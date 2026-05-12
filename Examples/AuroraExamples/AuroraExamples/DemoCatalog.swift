@@ -5,6 +5,9 @@ enum Demo: String, CaseIterable, Identifiable {
   case liveTuning
   case customProfile
   case washTuning
+  case palettes
+  case moods
+  case loading
 
   var id: String { rawValue }
 
@@ -14,6 +17,9 @@ enum Demo: String, CaseIterable, Identifiable {
     case .liveTuning: return "Live tuning"
     case .customProfile: return "Custom Profile"
     case .washTuning: return "Wash tuning"
+    case .palettes: return "Palettes"
+    case .moods: return "Moods"
+    case .loading: return "glowWhileLoading"
     }
   }
 
@@ -23,6 +29,9 @@ enum Demo: String, CaseIterable, Identifiable {
     case .liveTuning: return "Tweak every knob live"
     case .customProfile: return "Build a Profile by hand"
     case .washTuning: return "Dial the intro wash pulse"
+    case .palettes: return "Six built-in colour sets"
+    case .moods: return "Semantic state presets"
+    case .loading: return "Async loading wrapper"
     }
   }
 
@@ -32,6 +41,9 @@ enum Demo: String, CaseIterable, Identifiable {
     case .liveTuning: return "slider.horizontal.3"
     case .customProfile: return "waveform.path"
     case .washTuning: return "drop.fill"
+    case .palettes: return "paintpalette.fill"
+    case .moods: return "face.smiling.fill"
+    case .loading: return "hourglass"
     }
   }
 }

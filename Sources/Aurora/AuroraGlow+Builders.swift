@@ -73,6 +73,40 @@ extension AuroraGlow {
     with(\.introDuration, value)
   }
 
+  public func palette(
+    _ value: Palette
+  ) -> Self {
+    with(\.palette, value)
+  }
+
+  public func mood(
+    _ value: Mood
+  ) -> Self {
+    guard value != .neutral else { return self }
+    var copy = self
+    copy.palette = value.palette
+    copy.speed = self.speed * value.speedMultiplier
+    return copy
+  }
+
+  public func isVisible(
+    _ value: Bool
+  ) -> Self {
+    with(\.isVisible, value)
+  }
+
+  public func outroStyle(
+    _ value: OutroStyle
+  ) -> Self {
+    with(\.outroStyle, value)
+  }
+
+  public func outroDuration(
+    _ value: Float
+  ) -> Self {
+    with(\.outroDuration, value)
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {

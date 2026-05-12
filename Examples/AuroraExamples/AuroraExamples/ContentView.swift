@@ -27,6 +27,9 @@ struct ContentView: View {
     case .liveTuning: LiveTuningDemo()
     case .customProfile: CustomProfileDemo()
     case .washTuning: WashTuningDemo()
+    case .palettes: PaletteGalleryDemo()
+    case .moods: MoodDemo()
+    case .loading: LoadingDemo()
     }
   }
 }

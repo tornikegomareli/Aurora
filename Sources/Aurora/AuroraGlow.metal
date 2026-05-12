@@ -22,16 +22,23 @@
 
 using namespace metal;
 
-constant half3 kColorBase   = half3(0.000h, 0.588h, 1.000h);
-constant half3 kColorPurple = half3(0.983h, 0.392h, 1.000h);
-constant half3 kColorPink   = half3(1.000h, 0.145h, 0.333h);
-constant half3 kColorOrange = half3(1.000h, 0.577h, 0.000h);
-constant half3 kColorCyan   = half3(0.000h, 0.588h, 1.000h);
-
-constant half3 kAnchorColors[11] = {
-  kColorPurple, kColorPink, kColorOrange, kColorCyan, kColorOrange,
-  kColorPurple, kColorPink, kColorCyan, kColorPink, kColorOrange, kColorPurple,
-};
+// Anchor colors are no longer constants — they come from caller-
+// supplied palette uniforms (paletteBase, paletteA..paletteD). The
+// 11 anchor positions cycle through the four anchor colours in a
+// fixed pattern: a, b, c, d, c, a, b, d, b, c, a.
+inline half3 anchorColorAt(int i, half3 a, half3 b, half3 c, half3 d) {
+  if (i == 0)  return a;
+  if (i == 1)  return b;
+  if (i == 2)  return c;
+  if (i == 3)  return d;
+  if (i == 4)  return c;
+  if (i == 5)  return a;
+  if (i == 6)  return b;
+  if (i == 7)  return d;
+  if (i == 8)  return b;
+  if (i == 9)  return c;
+  return a;
+}
 
 constant float2 kAnchorFreq[11] = {
   float2(0.31, 0.27), float2(0.43, 0.19), float2(0.17, 0.37),
@@ -89,6 +96,17 @@ inline float introScale(float t, float duration) {
   float ease = 1.0 - pow(1.0 - p, 3.0);
   float bump = 0.08 * sin(p * 3.14159);
   return ease * (1.0 + bump);
+}
+
+// Heartbeat envelope: base growth with damped oscillations on top, so
+// the band visibly pulses 2–3 times before settling. The exponential
+// decay term reduces the amplitude of each successive pulse.
+inline float introScaleHeartbeat(float t, float duration) {
+  if (t < 0.0 || t >= duration) return 1.0;
+  float p = t / duration;
+  float base = 1.0 - pow(1.0 - p, 2.0);
+  float pulses = 0.35 * exp(-p * 3.5) * cos(p * 6.28318 * 2.8);
+  return clamp(base + pulses, 0.0, 1.5);
 }
 
 // Intro envelope (borderFill style): mask that "fills" the perimeter
@@ -236,15 +254,18 @@ inline half3 intelligenceLightColor(
                                     float2 xyPos, float2 size,
                                     float time, float burstT,
                                     float ampBoost, float speedBoost, float decay,
-                                    float reach, float power
+                                    float reach, float power,
+                                    half3 paletteBase,
+                                    half3 paletteA, half3 paletteB,
+                                    half3 paletteC, half3 paletteD
                                     ) {
-  half3 color = kColorBase;
+  half3 color = paletteBase;
   for (int i = 0; i < 11; ++i) {
     float2 a = anchorPosition(i, time, burstT, ampBoost, speedBoost, decay, size);
     float d = length(a - xyPos) / reach;
     float fall = clamp(1.0 - d, 0.0, 1.0);
     float t = fall * fall * (3.0 - 2.0 * fall);
-    color = mix(color, kAnchorColors[i], half(t));
+    color = mix(color, anchorColorAt(i, paletteA, paletteB, paletteC, paletteD), half(t));
   }
   color = min(color, half3(1.0h));
   
@@ -268,11 +289,18 @@ inline half3 intelligenceLightColor(
                                   float glowSize,
                                   float burstElapsed,
                                   float introElapsed,
+                                  float outroElapsed,
                                   float2 introParams,
+                                  float2 outroParams,
                                   float4 tuningA,
                                   float4 tuningB,
                                   float3 washParams,
-                                  float2 washDirection
+                                  float2 washDirection,
+                                  float3 paletteBase,
+                                  float3 paletteA,
+                                  float3 paletteB,
+                                  float3 paletteC,
+                                  float3 paletteD
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -285,12 +313,39 @@ inline half3 intelligenceLightColor(
   float2 p = position - center;
 
   float introDuration = introParams.x;
-  bool useBorderFill  = introParams.y > 0.5;
+  float styleId       = introParams.y;
+  bool useBorderFill  = styleId > 0.5 && styleId < 1.5;
+  bool useHeartbeat   = styleId > 1.5;
 
-  // Intro style branches: thicknessGrow scales the band size on appear;
-  // borderFill keeps the band at full size but masks where it shows so
-  // it appears to draw around the perimeter from a starting edge.
-  float introMul = useBorderFill ? 1.0 : introScale(introElapsed, introDuration);
+  // Intro style branches:
+  //   0 thicknessGrow — band scales from invisible to full size
+  //   1 borderFill    — band stays full but masked along the perimeter
+  //   2 heartbeat     — thickness pulses 2–3 times before settling
+  float introMul;
+  if (useBorderFill) {
+    introMul = 1.0;
+  } else if (useHeartbeat) {
+    introMul = introScaleHeartbeat(introElapsed, introDuration);
+  } else {
+    introMul = introScale(introElapsed, introDuration);
+  }
+
+  // Outro fade: when outroElapsed >= 0, the glow is on its way out.
+  // shrinkInward (style 1) scales the band thickness toward zero;
+  // dissolve (style 0) keeps the band size and fades alpha at the
+  // very end via outroAlpha.
+  float outroAlpha = 1.0;
+  if (outroElapsed >= 0.0) {
+    float outroDur     = outroParams.x;
+    float outroStyleId = outroParams.y;
+    float op = clamp(outroElapsed / max(outroDur, 0.0001), 0.0, 1.0);
+    if (outroStyleId > 0.5) {
+      introMul *= (1.0 - op);
+    } else {
+      outroAlpha = 1.0 - op;
+    }
+  }
+
   float effectiveBorder = borderWidth * introMul;
   float effectiveGlow   = glowSize   * introMul;
 
@@ -354,7 +409,10 @@ inline half3 intelligenceLightColor(
                                      position, size,
                                      time, burstElapsed,
                                      anchorAmpBoost, anchorSpeedBoost, decayRate,
-                                     reach, 0.0
+                                     reach, 0.0,
+                                     half3(paletteBase),
+                                     half3(paletteA), half3(paletteB),
+                                     half3(paletteC), half3(paletteD)
                                      );
   
   lit *= half(0.95 * burstBrightness(burstElapsed, brightnessPop, decayRate));
@@ -368,5 +426,6 @@ inline half3 intelligenceLightColor(
   half satFactor = half(1.0) + half(washAlpha) * half(0.5);
   lit = mix(half3(washLuma), lit, satFactor);
 
+  maskIntensity *= outroAlpha;
   return half4(lit * half(maskIntensity), half(maskIntensity));
 }
