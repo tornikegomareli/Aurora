@@ -1,169 +1,194 @@
 # Aurora
 
-A SwiftUI component that draws an Apple-Intelligence-style glowing ring
-around any view. One Metal shader, no images, no GIFs — anchored
-metaballs in four colours with a wavy edge that "carves" against the
-black interior, plus a damped-cosine burst envelope on intro.
+Apple-Intelligence-style glow for SwiftUI, simple as that.
+
+## Overview
+
+Aurora is a native SwiftUI component that draws an animated colourful ring around any view. One Metal fragment shader, no images, no GIFs — anchored metaballs with a wave-warped edge and a damped-cosine burst envelope on appear.
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Swift-5.9+-orange.svg" />
+  <img src="https://img.shields.io/badge/iOS-17.0+-blue.svg" />
+  <img src="https://img.shields.io/badge/SwiftUI-Native-green.svg" />
+</p>
+
+## Showcase
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-1" width="30%" />
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-2" width="30%" />
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-3" width="30%" />
+</p>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-4" width="40%" />
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-5" width="40%" />
+</p>
+
+## Installation
+
+### Swift Package Manager
 
 ```swift
-Card()
-  .padding()
-  .glow(.standard, cornerRadius: 24)
+dependencies: [
+    .package(url: "https://github.com/tornikegomareli/Aurora.git", from: "0.3.0")
+]
 ```
 
-That's it.
+Or via Xcode: **File → Add Package Dependencies**
 
-## Install
-
-Add Aurora to your `Package.swift`:
+## Quick Start
 
 ```swift
-.package(url: "https://github.com/your-org/Aurora.git", from: "0.1.0")
-```
-
-Or in Xcode: **File → Add Package Dependencies…** and paste the URL.
-
-Then `import Aurora`.
-
-**Requirements**: iOS 17+. The shader uses
-`ShaderLibrary` / `colorEffect` which is iOS 17 only.
-
-## Quick start
-
-Wrap any view in a glowing ring:
-
-```swift
-import Aurora
 import SwiftUI
+import Aurora
 
 struct ContentView: View {
-  var body: some View {
-    RoundedRectangle(cornerRadius: 24, style: .continuous)
-      .fill(.black)
-      .frame(height: 120)
-      .glow(.standard, cornerRadius: 24)
-  }
+    var body: some View {
+        Card()
+            .padding()
+            .glow(.standard, cornerRadius: 24)
+    }
 }
 ```
+
+That's it. The glow plays an intro on appear and settles into a gentle steady-state.
 
 ## Styles
 
-Three pre-tuned looks pick the burst feel:
+Three presets pick the overall feel:
 
-| Style       | Feel                                                |
-| ----------- | --------------------------------------------------- |
-| `.subtle`   | gentle steady-state, soft intro, minimal flames     |
-| `.standard` | recommended default; moderate burst                 |
-| `.dramatic` | energetic intro, big flames; closest to Apple's     |
-
-## Intro animation
-
-By default, the glow plays a short intro on first appear: the band
-grows in thickness from invisible to its target size in about 0.7
-seconds, with the burst envelope (color churn + brightness pop)
-running on top. That combination mimics the Apple Intelligence
-long-press intro — a luminous frame that *grows* into existence
-rather than fading in.
-
-Disable it with the builder:
+| Style       | Feel                                            |
+|-------------|-------------------------------------------------|
+| `.subtle`   | gentle steady-state, soft intro                 |
+| `.standard` | recommended default; moderate burst             |
+| `.dramatic` | energetic intro, big flames; closest to Apple's |
 
 ```swift
-AuroraGlow(.standard).introOnAppear(false)
+AuroraGlow(.dramatic).ignoresSafeArea()
 ```
 
-`introOnAppear` and `burstsOnAppear` are independent — you can keep
-the burst pop without the thickness growth, or vice-versa.
+## Palettes
 
-## Fine-tuning
-
-For more control, build an `AuroraGlow` directly and chain modifiers:
+Six built-in palettes:
 
 ```swift
-AuroraGlow(.dramatic)
-  .cornerRadius(24)
-  .borderWidth(4)
-  .glowSize(18)
-  .speed(0.2)
-  .ignoresSafeArea()
+AuroraGlow(.standard).palette(.appleIntelligence)  // default
+AuroraGlow(.standard).palette(.sunset)
+AuroraGlow(.standard).palette(.ocean)
+AuroraGlow(.standard).palette(.forest)
+AuroraGlow(.standard).palette(.monochrome)
+AuroraGlow(.standard).palette(.cyberpunk)
 ```
 
-Every modifier returns a new `AuroraGlow`, just like SwiftUI's built-in
-modifiers.
-
-You can pass a pre-configured glow to `.glow(_:)`:
+Or roll your own:
 
 ```swift
-Card().glow(
-  AuroraGlow(.dramatic)
-    .cornerRadius(24)
-    .borderWidth(8)
+let brand = AuroraGlow.Palette(
+    base: SIMD3(0.1, 0.2, 0.4),
+    anchors: [
+        SIMD3(1.0, 0.5, 0.0),
+        SIMD3(0.5, 0.8, 0.3),
+        SIMD3(0.2, 0.4, 0.9),
+        SIMD3(1.0, 0.2, 0.7),
+    ]
 )
+AuroraGlow(.standard).palette(brand)
 ```
 
-If none of the presets fits, build a `Profile` by hand:
+## Intro animations
+
+Three intro styles for how the glow appears:
+
+| Style            | What you see                                            |
+|------------------|---------------------------------------------------------|
+| `.thicknessGrow` | Band scales from invisible to full thickness            |
+| `.borderFill`    | Band draws itself around the perimeter from one edge    |
+| `.heartbeat`     | Thickness pulses 2–3× before settling                   |
 
 ```swift
-let custom = AuroraGlow.Profile(
-  anchorAmpBoost: 0.5,
-  anchorSpeedBoost: 2.5,
-  flameAmpBoost: 3.0,
-  brightnessPop: 0.4,
-  decayRate: 1.5,
-  flameBaseline: 0.5
-)
-AuroraGlow(profile: custom)
+AuroraGlow(.standard)
+    .introStyle(.borderFill)
+    .introDuration(0.5)
+    .direction(.topToBottom)
 ```
+
+Four direction cases: `.leftToRight`, `.rightToLeft`, `.topToBottom`, `.bottomToTop`.
+
+## Moods
+
+Semantic presets that bundle a palette and a speed:
+
+```swift
+AuroraGlow(.standard).mood(.listening)   // appleIntelligence palette, faster pace
+AuroraGlow(.standard).mood(.thinking)    // ocean palette, slower
+AuroraGlow(.standard).mood(.error)       // red palette
+AuroraGlow(.standard).mood(.success)     // green palette
+```
+
+## glowWhileLoading
+
+For AI streaming and async work:
+
+```swift
+@State private var isLoading = false
+
+ChatView()
+    .glowWhileLoading(isLoading)
+    .task {
+        isLoading = true
+        await streamFromAI()
+        isLoading = false
+    }
+```
+
+Intro plays on start, holds while loading, outro plays when done.
 
 ## Re-firing the burst
 
-The intro animation runs once on appear. To re-fire it later (after a
-network response lands, when a tab is selected, on a button tap, etc.),
-hold a `Burster` and pass it in:
+For manual triggers — button taps, TCA effects, anywhere outside the View:
 
 ```swift
-struct AssistantView: View {
-  @State private var burster = AuroraGlow.Burster()
+@State private var burster = AuroraGlow.Burster()
 
-  var body: some View {
-    VStack {
-      ChatTranscript()
-      Button("Ask again") { burster.fire() }
-    }
-    .glow(AuroraGlow(.standard).burster(burster))
-  }
-}
+Card().glow(AuroraGlow(.standard).burster(burster))
+
+Button("Ask again") { burster.fire() }
 ```
 
-`Burster` is an `@Observable`, `@MainActor`-isolated reference type —
-the view subscribes to its `lastFiredAt` and re-runs the burst envelope
-whenever you call `fire()`. From off-main contexts (TCA effects,
-detached tasks, NotificationCenter handlers) hop to the main actor
-first:
+`Burster` is `@MainActor`-isolated. From off-main contexts hop first: `Task { @MainActor in burster.fire() }`.
+
+## Customization
+
+Chain modifiers for full control:
 
 ```swift
-Task { @MainActor in burster.fire() }
+AuroraGlow(.standard)
+    .palette(.sunset)
+    .direction(.rightToLeft)
+    .introStyle(.heartbeat)
+    .introDuration(0.7)
+    .outroStyle(.dissolve)
+    .cornerRadius(24)
+    .borderWidth(6)
+    .glowSize(28)
+    .speed(0.12)
 ```
 
-## Live tuning
+Every modifier returns a new `AuroraGlow`, just like SwiftUI built-ins.
 
-`AuroraExamples` ships with `AuroraDemoView`, a sandbox screen with
-sliders for every knob and a button to re-fire the burst. Use it in
-Xcode previews while you dial in your design:
+## Examples
 
-```swift
-import AuroraExamples
+`AuroraExamples` (Xcode project under `Examples/AuroraExamples`) ships seven demo screens — hero, live tuning, custom profile, wash tuning, palette gallery, moods, and a `glowWhileLoading` sandbox. Open the project to play with them.
 
-#Preview {
-  AuroraDemoView()
-}
-```
+## Requirements
+
+- iOS 17+
+- Swift 5.9+
+- The shader uses `ShaderLibrary` / `colorEffect`, which are iOS 17 only.
 
 ## Credits
 
-The visual feel is reverse-engineered from Apple's `IntelligentLightFrag`
-shader in `SiriUICore.framework`. None of Apple's binary code is
-included — only the algorithm (anchored metaballs + warped SDF + noise
-+ damped-cosine burst envelope) is reproduced.
+The visual feel is reverse-engineered from Apple's `IntelligentLightFrag` shader in `SiriUICore.framework`. None of Apple's binary code is included — only the algorithm (anchored metaballs + noise-warped SDF + damped-cosine burst envelope) is reproduced.
 
 ## License
 
