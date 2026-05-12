@@ -37,10 +37,9 @@ import Aurora
 struct HeroScreen: View {
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
-
-            // your page content goes here
+          // your page content
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay {
             AuroraGlow(.standard).ignoresSafeArea()
         }
@@ -48,9 +47,9 @@ struct HeroScreen: View {
 }
 ```
 
-The overlay extends past the safe-area insets so the glow covers the full visible area. If the `ZStack` has no content yet, `.frame(maxWidth: .infinity, maxHeight: .infinity)` keeps it filled.
+The overlay extends past the safe-area insets so the glow covers the full visible area. If you will remove `.frame(maxWidth: .infinity, maxHeight: .infinity)` ZStack size will be dependent on its content and glow will be also missplaced.
 
-Or glow around the whole app — apply the overlay once at the scene level:
+Or glow around the whole app, apply the overlay once at the scene level:
 
 ```swift
 @main
