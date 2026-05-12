@@ -79,6 +79,16 @@ extension AuroraGlow {
     with(\.palette, value)
   }
 
+  public func mood(
+    _ value: Mood
+  ) -> Self {
+    guard value != .neutral else { return self }
+    var copy = self
+    copy.palette = value.palette
+    copy.speed = self.speed * value.speedMultiplier
+    return copy
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {
