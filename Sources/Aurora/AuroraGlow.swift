@@ -15,11 +15,15 @@ public struct AuroraGlow: View {
   public var introStyle: IntroStyle = .borderFill
   public var introDuration: Float = 0.5
   public var palette: Palette = .appleIntelligence
+  public var isVisible: Bool = true
+  public var outroStyle: OutroStyle = .dissolve
+  public var outroDuration: Float = 0.4
   public var burster: Burster?
 
   @State private var startDate = Date()
   @State private var burstStartDate: Date? = nil
   @State private var introStartDate: Date? = nil
+  @State private var outroStartDate: Date? = nil
 
   public init(_ style: Style = .standard) {
     self.profile = style.profile
@@ -46,6 +50,16 @@ public struct AuroraGlow: View {
     .onChange(of: burster?.lastFiredAt) { _, newValue in
       if let newValue { burstStartDate = newValue }
     }
+    .onChange(of: isVisible) { _, nowVisible in
+      let now = Date()
+      if nowVisible {
+        outroStartDate = nil
+        if introOnAppear { introStartDate = now }
+        if burstsOnAppear { burstStartDate = now }
+      } else {
+        outroStartDate = now
+      }
+    }
   }
   
   private func glowRect(in size: CGSize, at now: Date) -> some View {
@@ -54,6 +68,9 @@ public struct AuroraGlow: View {
       now.timeIntervalSince($0)
     } ?? -1.0
     let introElapsed: Double = introStartDate.map {
+      now.timeIntervalSince($0)
+    } ?? -1.0
+    let outroElapsed: Double = outroStartDate.map {
       now.timeIntervalSince($0)
     } ?? -1.0
     let t = profile
@@ -67,9 +84,14 @@ public struct AuroraGlow: View {
           .float(glowSize),
           .float(burstElapsed),
           .float(introElapsed),
+          .float(outroElapsed),
           .float2(
             CGFloat(introDuration),
             CGFloat(introStyle.shaderValue)
+          ),
+          .float2(
+            CGFloat(outroDuration),
+            CGFloat(outroStyle.shaderValue)
           ),
           .float4(
             CGFloat(t.anchorAmpBoost),

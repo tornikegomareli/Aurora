@@ -289,7 +289,9 @@ inline half3 intelligenceLightColor(
                                   float glowSize,
                                   float burstElapsed,
                                   float introElapsed,
+                                  float outroElapsed,
                                   float2 introParams,
+                                  float2 outroParams,
                                   float4 tuningA,
                                   float4 tuningB,
                                   float3 washParams,
@@ -327,6 +329,23 @@ inline half3 intelligenceLightColor(
   } else {
     introMul = introScale(introElapsed, introDuration);
   }
+
+  // Outro fade: when outroElapsed >= 0, the glow is on its way out.
+  // shrinkInward (style 1) scales the band thickness toward zero;
+  // dissolve (style 0) keeps the band size and fades alpha at the
+  // very end via outroAlpha.
+  float outroAlpha = 1.0;
+  if (outroElapsed >= 0.0) {
+    float outroDur     = outroParams.x;
+    float outroStyleId = outroParams.y;
+    float op = clamp(outroElapsed / max(outroDur, 0.0001), 0.0, 1.0);
+    if (outroStyleId > 0.5) {
+      introMul *= (1.0 - op);
+    } else {
+      outroAlpha = 1.0 - op;
+    }
+  }
+
   float effectiveBorder = borderWidth * introMul;
   float effectiveGlow   = glowSize   * introMul;
 
@@ -407,5 +426,6 @@ inline half3 intelligenceLightColor(
   half satFactor = half(1.0) + half(washAlpha) * half(0.5);
   lit = mix(half3(washLuma), lit, satFactor);
 
+  maskIntensity *= outroAlpha;
   return half4(lit * half(maskIntensity), half(maskIntensity));
 }

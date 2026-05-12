@@ -89,6 +89,24 @@ extension AuroraGlow {
     return copy
   }
 
+  public func isVisible(
+    _ value: Bool
+  ) -> Self {
+    with(\.isVisible, value)
+  }
+
+  public func outroStyle(
+    _ value: OutroStyle
+  ) -> Self {
+    with(\.outroStyle, value)
+  }
+
+  public func outroDuration(
+    _ value: Float
+  ) -> Self {
+    with(\.outroDuration, value)
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {
