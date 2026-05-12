@@ -103,22 +103,29 @@ inline float introScale(float t) {
 //   sweepDuration — seconds for the wave front to reach the corners
 //   pulseWidth    — seconds each pixel stays lit as the wave passes
 //   peak          — maximum alpha contribution at pulse peak (0..1)
+// Linear directional wave: pixels are ordered by their projection onto
+// `direction`. The wavefront is perpendicular to the direction — a
+// straight line, not a circle — which is the visual feel of Apple's
+// long-press / Hey-Siri introductions. Direction (-1, 0) is right-to-
+// left, (0, -1) is bottom-to-top, etc. Magnitude up to 1 is the
+// natural normalised range.
 inline float introWashAlpha(
-  float t, float2 position, float2 size, float2 origin,
+  float t, float2 position, float2 size, float2 direction,
   float sweepDuration, float pulseWidth, float peak
 ) {
   if (t < 0.0 || peak <= 0.0) return 0.0;
 
-  // Farthest reachable pixel from `origin` inside the rectangle is the
-  // diagonal-opposite corner. Compute it from the larger half-extents.
-  float dx = max(origin.x, size.x - origin.x);
-  float dy = max(origin.y, size.y - origin.y);
-  float maxDist = sqrt(dx * dx + dy * dy);
+  // Signed projection of this pixel along the direction.
+  float proj = dot(position, direction);
 
-  float distFromOrigin = length(position - origin);
-  float normDist = distFromOrigin / max(maxDist, 1.0);
+  // Min/max projection over the rectangle's corners — used to map
+  // the proj range to [0, 1] regardless of the direction vector.
+  float minProj = min(0.0, size.x * direction.x) + min(0.0, size.y * direction.y);
+  float maxProj = max(0.0, size.x * direction.x) + max(0.0, size.y * direction.y);
+  float range = max(maxProj - minProj, 1.0);
 
-  float arrival = normDist * sweepDuration;
+  float normT = (proj - minProj) / range;
+  float arrival = normT * sweepDuration;
   float localT  = t - arrival;
   if (localT < 0.0 || localT > pulseWidth) return 0.0;
 
@@ -236,7 +243,7 @@ inline half3 intelligenceLightColor(
                                   float4 tuningA,
                                   float4 tuningB,
                                   float3 washParams,
-                                  float2 washOrigin
+                                  float2 washDirection
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -295,9 +302,8 @@ inline half3 intelligenceLightColor(
   // for grain. Max-blended with the edge mask so the edge ring stays at
   // full intensity; the rest of the screen only lights up while the
   // wave passes through it.
-  float2 washOriginPx = float2(washOrigin.x * size.x, washOrigin.y * size.y);
   float washAlpha = introWashAlpha(
-    introElapsed, position, size, washOriginPx,
+    introElapsed, position, size, washDirection,
     washParams.x, washParams.y, washParams.z
   );
   float washIntensity = washAlpha * (0.55 + 0.45 * (waveValue * 0.5 + 0.5));

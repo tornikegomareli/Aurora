@@ -2,17 +2,17 @@ import Aurora
 import SwiftUI
 
 struct WashTuningDemo: View {
-  private static let defaultSweep: Float = 0.32
-  private static let defaultPulse: Float = 0.22
-  private static let defaultPeak: Float = 0.28
-  private static let defaultOriginX: Float = 1.0
-  private static let defaultOriginY: Float = 0.5
+  private static let defaultSweep: Float = 0.25
+  private static let defaultPulse: Float = 0.15
+  private static let defaultPeak: Float = 0.18
+  private static let defaultDirectionX: Float = -1.0
+  private static let defaultDirectionY: Float = 0.0
 
-  @State private var sweepDuration: Float = 0.32
-  @State private var pulseWidth: Float = 0.22
-  @State private var peak: Float = 0.28
-  @State private var originX: Float = 1.0
-  @State private var originY: Float = 0.5
+  @State private var sweepDuration: Float = 0.25
+  @State private var pulseWidth: Float = 0.15
+  @State private var peak: Float = 0.18
+  @State private var directionX: Float = -1.0
+  @State private var directionY: Float = 0.0
   @State private var replayKey = 0
 
   var body: some View {
@@ -22,8 +22,8 @@ struct WashTuningDemo: View {
         .washSweepDuration(sweepDuration)
         .washPulseWidth(pulseWidth)
         .washPeak(peak)
-        .washOriginX(originX)
-        .washOriginY(originY)
+        .washDirectionX(directionX)
+        .washDirectionY(directionY)
         .ignoresSafeArea()
         .id(replayKey)
       VStack {
@@ -32,8 +32,8 @@ struct WashTuningDemo: View {
           sweepDuration: $sweepDuration,
           pulseWidth: $pulseWidth,
           peak: $peak,
-          originX: $originX,
-          originY: $originY,
+          directionX: $directionX,
+          directionY: $directionY,
           onReplay: replay,
           onReset: resetDefaults
         )
@@ -52,8 +52,8 @@ struct WashTuningDemo: View {
     sweepDuration = Self.defaultSweep
     pulseWidth = Self.defaultPulse
     peak = Self.defaultPeak
-    originX = Self.defaultOriginX
-    originY = Self.defaultOriginY
+    directionX = Self.defaultDirectionX
+    directionY = Self.defaultDirectionY
     replay()
   }
 }
@@ -62,8 +62,8 @@ private struct WashControlPanel: View {
   @Binding var sweepDuration: Float
   @Binding var pulseWidth: Float
   @Binding var peak: Float
-  @Binding var originX: Float
-  @Binding var originY: Float
+  @Binding var directionX: Float
+  @Binding var directionY: Float
   let onReplay: () -> Void
   let onReset: () -> Void
 
@@ -88,15 +88,15 @@ private struct WashControlPanel: View {
         format: "%.2f"
       )
       WashSlider(
-        label: "Origin X",
-        value: $originX,
-        range: 0.0...1.0,
+        label: "Dir X",
+        value: $directionX,
+        range: -1.0...1.0,
         format: "%.2f"
       )
       WashSlider(
-        label: "Origin Y",
-        value: $originY,
-        range: 0.0...1.0,
+        label: "Dir Y",
+        value: $directionY,
+        range: -1.0...1.0,
         format: "%.2f"
       )
       HStack(spacing: 12) {
