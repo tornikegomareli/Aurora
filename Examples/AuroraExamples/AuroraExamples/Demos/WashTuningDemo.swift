@@ -129,6 +129,7 @@ private struct IntroStylePicker: View {
     Picker("Intro style", selection: $style) {
       Text("Thickness").tag(AuroraGlow.IntroStyle.thicknessGrow)
       Text("Border fill").tag(AuroraGlow.IntroStyle.borderFill)
+      Text("Heartbeat").tag(AuroraGlow.IntroStyle.heartbeat)
     }
     .pickerStyle(.segmented)
     .colorScheme(.dark)
