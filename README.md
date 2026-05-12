@@ -56,6 +56,24 @@ Three pre-tuned looks pick the burst feel:
 | `.standard` | recommended default; moderate burst                 |
 | `.dramatic` | energetic intro, big flames; closest to Apple's     |
 
+## Intro animation
+
+By default, the glow plays a short intro on first appear: the band
+grows in thickness from invisible to its target size in about 0.7
+seconds, with the burst envelope (color churn + brightness pop)
+running on top. That combination mimics the Apple Intelligence
+long-press intro — a luminous frame that *grows* into existence
+rather than fading in.
+
+Disable it with the builder:
+
+```swift
+AuroraGlow(.standard).introOnAppear(false)
+```
+
+`introOnAppear` and `burstsOnAppear` are independent — you can keep
+the burst pop without the thickness growth, or vice-versa.
+
 ## Fine-tuning
 
 For more control, build an `AuroraGlow` directly and chain modifiers:

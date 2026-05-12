@@ -78,6 +78,89 @@ inline float burstNoiseSpeed(float t, float decay) {
   return 1.0 + 3.0 * exp(-t * (decay + 0.1));
 }
 
+// Intro envelope (thicknessGrow style): scales the band from invisible
+// to full thickness with a tiny overshoot before settling. `duration`
+// is the wall time the animation takes. `t < 0` (intro not playing)
+// or `t >= duration` (intro finished) return 1.0 so the band renders
+// at full size.
+inline float introScale(float t, float duration) {
+  if (t < 0.0 || t >= duration) return 1.0;
+  float p = t / duration;
+  float ease = 1.0 - pow(1.0 - p, 3.0);
+  float bump = 0.08 * sin(p * 3.14159);
+  return ease * (1.0 + bump);
+}
+
+// Intro envelope (borderFill style): mask that "fills" the perimeter
+// from the direction's start edge, sweeping around both ways and
+// meeting itself at the opposite side. Uses the angle from the
+// rectangle's centre as a proxy for the perimeter position — a fair
+// approximation for rounded rects without measuring true arc length.
+//   t            — elapsed time since intro started
+//   duration     — total intro time
+//   startPerimT  — where on the perimeter the fill originates (0..1)
+inline float borderFillMask(
+  float2 position, float2 size, float startPerimT, float t, float duration
+) {
+  if (t < 0.0 || t >= duration) return 1.0;
+
+  float2 p = position - size * 0.5;
+  float angle = atan2(p.y, p.x);                 // -pi..pi
+  float perimT = (angle + 3.14159) * 0.15915494;  // /(2*pi) → 0..1
+
+  // Distance around the loop from the start position (both ways);
+  // *2 normalises to 0..1.
+  float dist = abs(perimT - startPerimT);
+  dist = min(dist, 1.0 - dist) * 2.0;
+
+  float normT = t / duration;
+  float softness = 0.08;
+  return 1.0 - smoothstep(normT - softness, normT + softness, dist);
+}
+
+// Convert a direction vector to its origin's perimeter position. The
+// direction points where the wave travels TO, so the perimeter start
+// is in the *opposite* direction from the centre.
+inline float perimeterStartFromDirection(float2 dir) {
+  return (atan2(-dir.y, -dir.x) + 3.14159) * 0.15915494;
+}
+
+// Intro wash: a fast semi-transparent pulse that *travels outward*
+// from the centre of the frame. Each pixel sees its own short sine
+// pulse, delayed by its normalised distance from centre, so the
+// effect reads as a wave sweeping across the screen. All three
+// parameters are passed in as a uniform so callers can tune the
+// feel without recompiling:
+//   sweepDuration — seconds for the wave front to reach the corners
+//   pulseWidth    — seconds each pixel stays lit as the wave passes
+//   peak          — maximum alpha contribution at pulse peak (0..1)
+// Linear directional wash: a single travelling wavefront perpendicular
+// to `direction` that crosses the rectangle once. Each pixel sees a
+// brief sine pulse as the front passes through it. Direction (-1, 0)
+// is right-to-left, (0, -1) is bottom-to-top, etc.
+//   sweepDuration — seconds for the front to cross the rectangle
+//   pulseWidth    — seconds each pixel stays lit as the front passes
+//   peak          — max alpha at pulse centre
+inline float introWashAlpha(
+  float t, float2 position, float2 size, float2 direction,
+  float sweepDuration, float pulseWidth, float peak
+) {
+  if (t < 0.0 || peak <= 0.0) return 0.0;
+
+  float proj = dot(position, direction);
+  float minProj = min(0.0, size.x * direction.x) + min(0.0, size.y * direction.y);
+  float maxProj = max(0.0, size.x * direction.x) + max(0.0, size.y * direction.y);
+  float range = max(maxProj - minProj, 1.0);
+
+  float normT = (proj - minProj) / range;
+  float arrival = normT * sweepDuration;
+  float localT  = t - arrival;
+  if (localT < 0.0 || localT > pulseWidth) return 0.0;
+
+  float u = localT / pulseWidth;
+  return peak * sin(u * 3.14159);
+}
+
 /// 3D gradient noise + FBM, computed procedurally
 inline float3 hash33(float3 p) {
   p = float3(
@@ -184,8 +267,12 @@ inline half3 intelligenceLightColor(
                                   float borderWidth,
                                   float glowSize,
                                   float burstElapsed,
+                                  float introElapsed,
+                                  float2 introParams,
                                   float4 tuningA,
-                                  float4 tuningB
+                                  float4 tuningB,
+                                  float3 washParams,
+                                  float2 washDirection
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -193,10 +280,20 @@ inline half3 intelligenceLightColor(
   float brightnessPop    = tuningA.w;
   float decayRate        = tuningB.x;
   float flameBaseline    = tuningB.y;
-  
+
   float2 center = size * 0.5;
   float2 p = position - center;
-  
+
+  float introDuration = introParams.x;
+  bool useBorderFill  = introParams.y > 0.5;
+
+  // Intro style branches: thicknessGrow scales the band size on appear;
+  // borderFill keeps the band at full size but masks where it shows so
+  // it appears to draw around the perimeter from a starting edge.
+  float introMul = useBorderFill ? 1.0 : introScale(introElapsed, introDuration);
+  float effectiveBorder = borderWidth * introMul;
+  float effectiveGlow   = glowSize   * introMul;
+
   /// Faithful to Apple's technique the edge gets warped into the black
   /// interior by the noise field, so wave fronts visibly carve against the
   /// dark background instead of just being added on top.
@@ -206,7 +303,7 @@ inline half3 intelligenceLightColor(
   float n2 = gradientNoise3D(float3(uv * 3.6 + float2(11.7, 5.3),
                                     time * noiseScrollSpeed * 0.55));
   float waveValue = n * 0.7 + n2 * 0.35;
-  
+
   /// The clean SDF defines the rounded-rect boundary. The warped SDF lets
   /// the noise field deform it. We take `min(abs(clean), abs(warped))` so
   /// the band width is never *less* than the clean ring, that floor kills
@@ -216,20 +313,41 @@ inline half3 intelligenceLightColor(
   /// outside, full-width clean ring guaranteed on the inside.
   float distRaw = roundedRectSDF(p, center, cornerRadius);
   float flameAmp = burstFlameAmp(burstElapsed, flameAmpBoost, flameBaseline, decayRate);
-  float waveAmount = glowSize * flameAmp;
+  float waveAmount = effectiveGlow * flameAmp;
   float distWarped = distRaw + waveValue * waveAmount;
   float absDist = min(abs(distRaw), abs(distWarped));
-  
+
   // edge band mask
-  float core = smoothstep(borderWidth + 1.0, borderWidth - 1.0, absDist);
-  float mid  = smoothstep(glowSize * 0.6,    0.0,                absDist) * 0.55;
-  float wide = smoothstep(glowSize * 1.4,    0.0,                absDist) * 0.30;
+  float core = smoothstep(effectiveBorder + 1.0, effectiveBorder - 1.0, absDist);
+  float mid  = smoothstep(effectiveGlow * 0.6,   0.0,                   absDist) * 0.55;
+  float wide = smoothstep(effectiveGlow * 1.4,   0.0,                   absDist) * 0.30;
   float maskIntensity = saturate(core + mid + wide);
-  
+
   // subtle per-pixel flicker from the same noise so the boundary
   // shimmers even at rest
   float flicker = 0.88 + 0.18 * (waveValue * 0.5 + 0.5);
   maskIntensity *= flicker;
+
+  // borderFill style masks the edge band so it appears to draw itself
+  // around the perimeter from the direction's start edge. No-op when
+  // introStyle == thicknessGrow.
+  if (useBorderFill) {
+    float startPerimT = perimeterStartFromDirection(washDirection);
+    float fillMask = borderFillMask(position, size, startPerimT, introElapsed, introDuration);
+    maskIntensity *= fillMask;
+  }
+
+  // Travelling intro wash: each pixel sees its own brief pulse, delayed
+  // by distance from the frame's centre. Combined with noise modulation
+  // for grain. Max-blended with the edge mask so the edge ring stays at
+  // full intensity; the rest of the screen only lights up while the
+  // wave passes through it.
+  float washAlpha = introWashAlpha(
+    introElapsed, position, size, washDirection,
+    washParams.x, washParams.y, washParams.z
+  );
+  float washIntensity = washAlpha * (0.55 + 0.45 * (waveValue * 0.5 + 0.5));
+  maskIntensity = max(maskIntensity, washIntensity);
   
   float reach = 0.55 * max(size.x, size.y);
   half3 lit = intelligenceLightColor(
@@ -240,6 +358,15 @@ inline half3 intelligenceLightColor(
                                      );
   
   lit *= half(0.95 * burstBrightness(burstElapsed, brightnessPop, decayRate));
-  
+
+  // While the wash is active, lift saturation by extrapolating away
+  // from luma. This mirrors what Apple's `SaturatedV1Frag` does with
+  // its `mix(luma, color, 1.5)` trick — pushes the colours past the
+  // gray axis so the pulse reads as more vivid than the steady-state
+  // ring. Settles back to neutral once wash returns to 0.
+  half washLuma = dot(lit, half3(0.213h, 0.716h, 0.072h));
+  half satFactor = half(1.0) + half(washAlpha) * half(0.5);
+  lit = mix(half3(washLuma), lit, satFactor);
+
   return half4(lit * half(maskIntensity), half(maskIntensity));
 }

@@ -350,8 +350,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/tornikegomareli/Aurora";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
+				branch = "intro-animation";
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -7,10 +7,18 @@ public struct AuroraGlow: View {
   public var glowSize: CGFloat = 28
   public var speed: Double = 0.12
   public var burstsOnAppear: Bool = true
+  public var introOnAppear: Bool = true
+  public var washSweepDuration: Float = 0.12
+  public var washPulseWidth: Float = 0.80
+  public var washPeak: Float = 0.10
+  public var direction: Direction = .topToBottom
+  public var introStyle: IntroStyle = .borderFill
+  public var introDuration: Float = 0.5
   public var burster: Burster?
 
   @State private var startDate = Date()
   @State private var burstStartDate: Date? = nil
+  @State private var introStartDate: Date? = nil
 
   public init(_ style: Style = .standard) {
     self.profile = style.profile
@@ -30,7 +38,9 @@ public struct AuroraGlow: View {
     .allowsHitTesting(false)
     .accessibilityHidden(true)
     .onAppear {
-      if burstsOnAppear { burstStartDate = Date() }
+      let now = Date()
+      if introOnAppear { introStartDate = now }
+      if burstsOnAppear { burstStartDate = now }
     }
     .onChange(of: burster?.lastFiredAt) { _, newValue in
       if let newValue { burstStartDate = newValue }
@@ -40,6 +50,9 @@ public struct AuroraGlow: View {
   private func glowRect(in size: CGSize, at now: Date) -> some View {
     let elapsed = now.timeIntervalSince(startDate)
     let burstElapsed: Double = burstStartDate.map {
+      now.timeIntervalSince($0)
+    } ?? -1.0
+    let introElapsed: Double = introStartDate.map {
       now.timeIntervalSince($0)
     } ?? -1.0
     let t = profile
@@ -52,6 +65,11 @@ public struct AuroraGlow: View {
           .float(borderWidth),
           .float(glowSize),
           .float(burstElapsed),
+          .float(introElapsed),
+          .float2(
+            CGFloat(introDuration),
+            CGFloat(introStyle.shaderValue)
+          ),
           .float4(
             CGFloat(t.anchorAmpBoost),
             CGFloat(t.anchorSpeedBoost),
@@ -63,6 +81,15 @@ public struct AuroraGlow: View {
             CGFloat(t.flameBaseline),
             0.0,
             0.0
+          ),
+          .float3(
+            CGFloat(washSweepDuration),
+            CGFloat(washPulseWidth),
+            CGFloat(washPeak)
+          ),
+          .float2(
+            CGFloat(direction.vector.x),
+            CGFloat(direction.vector.y)
           )
         )
       )
