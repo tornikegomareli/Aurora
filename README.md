@@ -1,10 +1,4 @@
-# Aurora
-
-Apple-Intelligence-style glow for SwiftUI, simple as that.
-
-## Overview
-
-Aurora is a native SwiftUI component that draws an animated colourful ring around any view. One Metal fragment shader, no images, no GIFs — anchored metaballs with a wave-warped edge and a damped-cosine burst envelope on appear.
+Most accurate simple customizable SwiftUI component for Apple Intelligence style glow, backed with Metal Shaders.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Swift-5.9+-orange.svg" />
@@ -18,10 +12,6 @@ Aurora is a native SwiftUI component that draws an animated colourful ring aroun
   <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.3.0/demo11.gif" width="30%" />
   <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.3.0/demo22.gif" width="30%" />
   <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.3.0/demo33.gif" width="30%" />
-</p>
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-4" width="40%" />
-  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-5" width="40%" />
 </p>
 
 ## Installation
@@ -141,7 +131,7 @@ AuroraGlow(.standard).mood(.success)     // green palette
 
 ## glowWhileLoading
 
-For AI streaming and async work:
+For streaming and async work:
 
 ```swift
 @State private var isLoading = false
@@ -168,8 +158,6 @@ Card().glow(AuroraGlow(.standard).burster(burster))
 
 Button("Ask again") { burster.fire() }
 ```
-
-`Burster` is `@MainActor`-isolated. From off-main contexts hop first: `Task { @MainActor in burster.fire() }`.
 
 ## Customization
 
@@ -202,7 +190,7 @@ Every modifier returns a new `AuroraGlow`, just like SwiftUI built-ins.
 
 ## Credits
 
-The visual feel is reverse-engineered from Apple's `IntelligentLightFrag` shader in `SiriUICore.framework`. None of Apple's binary code is included — only the algorithm (anchored metaballs + noise-warped SDF + damped-cosine burst envelope) is reproduced.
+The visual feel is reverse-engineered from Apple's `IntelligentLightFrag` shader in `SiriUICore.framework`. None of Apple's binary code is included, only the algorithm (anchored metaballs + noise-warped SDF + damped-cosine burst envelope) is reproduced.
 
 ## License
 
