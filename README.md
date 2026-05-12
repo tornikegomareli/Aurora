@@ -38,20 +38,34 @@ Or via Xcode: **File → Add Package Dependencies**
 
 ## Quick Start
 
+Glow around the whole app — the most common case:
+
 ```swift
 import SwiftUI
 import Aurora
 
-struct ContentView: View {
-    var body: some View {
-        Card()
-            .padding()
-            .glow(.standard, cornerRadius: 24)
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .overlay {
+                    AuroraGlow(.standard).ignoresSafeArea()
+                }
+        }
     }
 }
 ```
 
-That's it. The glow plays an intro on appear and settles into a gentle steady-state.
+That's it. The glow plays its intro on appear, settles into a steady state, and never intercepts taps.
+
+Or wrap a single view:
+
+```swift
+Card()
+    .padding()
+    .glow(.standard, cornerRadius: 24)
+```
 
 ## Styles
 
