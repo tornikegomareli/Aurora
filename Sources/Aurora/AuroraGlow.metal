@@ -103,54 +103,31 @@ inline float introScale(float t) {
 //   sweepDuration — seconds for the wave front to reach the corners
 //   pulseWidth    — seconds each pixel stays lit as the wave passes
 //   peak          — maximum alpha contribution at pulse peak (0..1)
-// Multi-line radial wash. Generates several concentric arcs that fan
-// outward from `origin`, each appearing as a thin colourful line.
-// Built from a periodic sin pattern of `(distance - time*speed)`, so
-// the arc-pattern travels outward over time. Place `origin` outside
-// the rectangle (e.g. x=1.15 puts it just past the right edge) for
-// the "lines arriving from beyond the screen edge" feel that matches
-// Apple's long-press intro. Origin is in normalised 0..1 coords here;
-// the caller may pass values outside that range freely.
-//   sweepDuration — total intro window the arc pattern is visible
-//   lineFrequency — roughly how many simultaneous arcs (higher = more)
-//   peak          — alpha at brightest arc lobe
+// Linear directional wash: a single travelling wavefront perpendicular
+// to `direction` that crosses the rectangle once. Each pixel sees a
+// brief sine pulse as the front passes through it. Direction (-1, 0)
+// is right-to-left, (0, -1) is bottom-to-top, etc.
+//   sweepDuration — seconds for the front to cross the rectangle
+//   pulseWidth    — seconds each pixel stays lit as the front passes
+//   peak          — max alpha at pulse centre
 inline float introWashAlpha(
-  float t, float2 position, float2 size, float2 originNorm,
-  float sweepDuration, float lineFrequency, float peak
+  float t, float2 position, float2 size, float2 direction,
+  float sweepDuration, float pulseWidth, float peak
 ) {
-  if (t < 0.0 || t > sweepDuration || peak <= 0.0) return 0.0;
+  if (t < 0.0 || peak <= 0.0) return 0.0;
 
-  float2 origin = originNorm * size;
-  float dist = length(position - origin);
+  float proj = dot(position, direction);
+  float minProj = min(0.0, size.x * direction.x) + min(0.0, size.y * direction.y);
+  float maxProj = max(0.0, size.x * direction.x) + max(0.0, size.y * direction.y);
+  float range = max(maxProj - minProj, 1.0);
 
-  // Max possible distance from origin to a pixel inside the rectangle —
-  // covers origins outside the rectangle too via abs().
-  float dx = max(abs(origin.x), abs(size.x - origin.x));
-  float dy = max(abs(origin.y), abs(size.y - origin.y));
-  float maxDist = sqrt(dx * dx + dy * dy);
+  float normT = (proj - minProj) / range;
+  float arrival = normT * sweepDuration;
+  float localT  = t - arrival;
+  if (localT < 0.0 || localT > pulseWidth) return 0.0;
 
-  float normDist = dist / max(maxDist, 1.0);
-  float normT = t / sweepDuration;
-
-  // Travelling-wave phase: arcs move outward as time progresses. The
-  // 1.2 multiplier lets the front overshoot 1.0 slightly so the last
-  // arc clears the far edge before the envelope closes.
-  float phase = (normDist - normT * 1.2) * lineFrequency * 6.28318;
-  float wave = max(0.0, sin(phase));
-
-  // Wavefront expansion: only show arcs whose normDist is behind the
-  // expanding front. Smoothstep softens the leading edge so arcs aren't
-  // clipped sharply.
-  float wavefront = normT * 1.3;
-  float visibility = 1.0 - smoothstep(wavefront - 0.12, wavefront, normDist);
-
-  // Distance falloff: arcs gradually dim toward the far edge.
-  float distanceFade = 1.0 - normDist * 0.25;
-
-  // Intro envelope: fade in then out over the sweep window.
-  float envelope = sin(normT * 3.14159);
-
-  return peak * wave * visibility * distanceFade * envelope;
+  float u = localT / pulseWidth;
+  return peak * sin(u * 3.14159);
 }
 
 /// 3D gradient noise + FBM, computed procedurally
@@ -263,7 +240,7 @@ inline half3 intelligenceLightColor(
                                   float4 tuningA,
                                   float4 tuningB,
                                   float3 washParams,
-                                  float2 washOrigin
+                                  float2 washDirection
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -323,7 +300,7 @@ inline half3 intelligenceLightColor(
   // full intensity; the rest of the screen only lights up while the
   // wave passes through it.
   float washAlpha = introWashAlpha(
-    introElapsed, position, size, washOrigin,
+    introElapsed, position, size, washDirection,
     washParams.x, washParams.y, washParams.z
   );
   float washIntensity = washAlpha * (0.55 + 0.45 * (waveValue * 0.5 + 0.5));
