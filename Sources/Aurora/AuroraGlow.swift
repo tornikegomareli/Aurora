@@ -8,11 +8,11 @@ public struct AuroraGlow: View {
   public var speed: Double = 0.12
   public var burstsOnAppear: Bool = true
   public var introOnAppear: Bool = true
-  public var washSweepDuration: Float = 0.25
-  public var washPulseWidth: Float = 0.15
-  public var washPeak: Float = 0.18
-  public var washDirectionX: Float = -1.0
-  public var washDirectionY: Float = 0.0
+  public var washSweepDuration: Float = 0.8
+  public var washLineFrequency: Float = 2.5
+  public var washPeak: Float = 0.25
+  public var washOriginX: Float = 1.15
+  public var washOriginY: Float = 0.5
   public var burster: Burster?
 
   @State private var startDate = Date()
@@ -79,12 +79,12 @@ public struct AuroraGlow: View {
           ),
           .float3(
             CGFloat(washSweepDuration),
-            CGFloat(washPulseWidth),
+            CGFloat(washLineFrequency),
             CGFloat(washPeak)
           ),
           .float2(
-            CGFloat(washDirectionX),
-            CGFloat(washDirectionY)
+            CGFloat(washOriginX),
+            CGFloat(washOriginY)
           )
         )
       )

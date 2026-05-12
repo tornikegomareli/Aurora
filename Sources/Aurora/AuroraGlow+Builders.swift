@@ -43,10 +43,10 @@ extension AuroraGlow {
     with(\.washSweepDuration, value)
   }
 
-  public func washPulseWidth(
+  public func washLineFrequency(
     _ value: Float
   ) -> Self {
-    with(\.washPulseWidth, value)
+    with(\.washLineFrequency, value)
   }
 
   public func washPeak(
@@ -55,16 +55,16 @@ extension AuroraGlow {
     with(\.washPeak, value)
   }
 
-  public func washDirectionX(
+  public func washOriginX(
     _ value: Float
   ) -> Self {
-    with(\.washDirectionX, value)
+    with(\.washOriginX, value)
   }
 
-  public func washDirectionY(
+  public func washOriginY(
     _ value: Float
   ) -> Self {
-    with(\.washDirectionY, value)
+    with(\.washOriginY, value)
   }
 
   public func burster(
