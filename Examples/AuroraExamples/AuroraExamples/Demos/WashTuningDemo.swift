@@ -2,19 +2,19 @@ import Aurora
 import SwiftUI
 
 struct WashTuningDemo: View {
-  private static let defaultSweep: Float = 0.11
-  private static let defaultPulse: Float = 0.35
-  private static let defaultPeak: Float = 0.08
-  private static let defaultIntroDuration: Float = 0.7
-  private static let defaultDirection: AuroraGlow.Direction = .rightToLeft
-  private static let defaultIntroStyle: AuroraGlow.IntroStyle = .thicknessGrow
+  private static let defaultSweep: Float = 0.12
+  private static let defaultPulse: Float = 0.80
+  private static let defaultPeak: Float = 0.10
+  private static let defaultIntroDuration: Float = 0.5
+  private static let defaultDirection: AuroraGlow.Direction = .topToBottom
+  private static let defaultIntroStyle: AuroraGlow.IntroStyle = .borderFill
 
-  @State private var sweepDuration: Float = 0.11
-  @State private var pulseWidth: Float = 0.35
-  @State private var peak: Float = 0.08
-  @State private var introDuration: Float = 0.7
-  @State private var direction: AuroraGlow.Direction = .rightToLeft
-  @State private var introStyle: AuroraGlow.IntroStyle = .thicknessGrow
+  @State private var sweepDuration: Float = 0.12
+  @State private var pulseWidth: Float = 0.80
+  @State private var peak: Float = 0.10
+  @State private var introDuration: Float = 0.5
+  @State private var direction: AuroraGlow.Direction = .topToBottom
+  @State private var introStyle: AuroraGlow.IntroStyle = .borderFill
   @State private var replayKey = 0
 
   var body: some View {

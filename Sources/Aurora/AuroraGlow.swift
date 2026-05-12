@@ -8,12 +8,12 @@ public struct AuroraGlow: View {
   public var speed: Double = 0.12
   public var burstsOnAppear: Bool = true
   public var introOnAppear: Bool = true
-  public var washSweepDuration: Float = 0.11
-  public var washPulseWidth: Float = 0.35
-  public var washPeak: Float = 0.08
-  public var direction: Direction = .rightToLeft
-  public var introStyle: IntroStyle = .thicknessGrow
-  public var introDuration: Float = 0.7
+  public var washSweepDuration: Float = 0.12
+  public var washPulseWidth: Float = 0.80
+  public var washPeak: Float = 0.10
+  public var direction: Direction = .topToBottom
+  public var introStyle: IntroStyle = .borderFill
+  public var introDuration: Float = 0.5
   public var burster: Burster?
 
   @State private var startDate = Date()
