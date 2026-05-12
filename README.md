@@ -28,12 +28,31 @@ Or via Xcode: **File → Add Package Dependencies**
 
 ## Quick Start
 
-Glow around the whole app — the most common case:
+Glow around a single screen — the most common case:
 
 ```swift
 import SwiftUI
 import Aurora
 
+struct HeroScreen: View {
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            // your page content goes here
+        }
+        .overlay {
+            AuroraGlow(.standard).ignoresSafeArea()
+        }
+    }
+}
+```
+
+The overlay extends past the safe-area insets so the glow covers the full visible area. If the `ZStack` has no content yet, `.frame(maxWidth: .infinity, maxHeight: .infinity)` keeps it filled.
+
+Or glow around the whole app — apply the overlay once at the scene level:
+
+```swift
 @main
 struct MyApp: App {
     var body: some Scene {
@@ -47,8 +66,6 @@ struct MyApp: App {
 }
 ```
 
-That's it. The glow plays its intro on appear, settles into a steady state, and never intercepts taps.
-
 Or wrap a single view:
 
 ```swift
@@ -56,6 +73,8 @@ Card()
     .padding()
     .glow(.standard, cornerRadius: 24)
 ```
+
+The glow plays its intro on appear, settles into a steady state, and never intercepts taps.
 
 ## Styles
 
