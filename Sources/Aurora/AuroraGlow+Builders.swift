@@ -55,16 +55,22 @@ extension AuroraGlow {
     with(\.washPeak, value)
   }
 
-  public func washDirectionX(
-    _ value: Float
+  public func direction(
+    _ value: Direction
   ) -> Self {
-    with(\.washDirectionX, value)
+    with(\.direction, value)
   }
 
-  public func washDirectionY(
+  public func introStyle(
+    _ value: IntroStyle
+  ) -> Self {
+    with(\.introStyle, value)
+  }
+
+  public func introDuration(
     _ value: Float
   ) -> Self {
-    with(\.washDirectionY, value)
+    with(\.introDuration, value)
   }
 
   public func burster(

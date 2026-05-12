@@ -78,20 +78,51 @@ inline float burstNoiseSpeed(float t, float decay) {
   return 1.0 + 3.0 * exp(-t * (decay + 0.1));
 }
 
-// Intro envelope: scales the glow's thickness from invisible to full,
-// with a tiny overshoot around p=0.8 before settling. Apple's intro
-// reads as the frame *growing in thickness* on all four sides at once,
-// so we apply this multiplier to both `borderWidth` and `glowSize`.
-// `t < 0` means no intro is in progress and the shader runs at full
-// thickness (used by callers who disabled `introOnAppear`).
-constant float kIntroDuration = 0.7;
-
-inline float introScale(float t) {
-  if (t < 0.0 || t >= kIntroDuration) return 1.0;
-  float p = t / kIntroDuration;
+// Intro envelope (thicknessGrow style): scales the band from invisible
+// to full thickness with a tiny overshoot before settling. `duration`
+// is the wall time the animation takes. `t < 0` (intro not playing)
+// or `t >= duration` (intro finished) return 1.0 so the band renders
+// at full size.
+inline float introScale(float t, float duration) {
+  if (t < 0.0 || t >= duration) return 1.0;
+  float p = t / duration;
   float ease = 1.0 - pow(1.0 - p, 3.0);
   float bump = 0.08 * sin(p * 3.14159);
   return ease * (1.0 + bump);
+}
+
+// Intro envelope (borderFill style): mask that "fills" the perimeter
+// from the direction's start edge, sweeping around both ways and
+// meeting itself at the opposite side. Uses the angle from the
+// rectangle's centre as a proxy for the perimeter position — a fair
+// approximation for rounded rects without measuring true arc length.
+//   t            — elapsed time since intro started
+//   duration     — total intro time
+//   startPerimT  — where on the perimeter the fill originates (0..1)
+inline float borderFillMask(
+  float2 position, float2 size, float startPerimT, float t, float duration
+) {
+  if (t < 0.0 || t >= duration) return 1.0;
+
+  float2 p = position - size * 0.5;
+  float angle = atan2(p.y, p.x);                 // -pi..pi
+  float perimT = (angle + 3.14159) * 0.15915494;  // /(2*pi) → 0..1
+
+  // Distance around the loop from the start position (both ways);
+  // *2 normalises to 0..1.
+  float dist = abs(perimT - startPerimT);
+  dist = min(dist, 1.0 - dist) * 2.0;
+
+  float normT = t / duration;
+  float softness = 0.08;
+  return 1.0 - smoothstep(normT - softness, normT + softness, dist);
+}
+
+// Convert a direction vector to its origin's perimeter position. The
+// direction points where the wave travels TO, so the perimeter start
+// is in the *opposite* direction from the centre.
+inline float perimeterStartFromDirection(float2 dir) {
+  return (atan2(-dir.y, -dir.x) + 3.14159) * 0.15915494;
 }
 
 // Intro wash: a fast semi-transparent pulse that *travels outward*
@@ -237,6 +268,7 @@ inline half3 intelligenceLightColor(
                                   float glowSize,
                                   float burstElapsed,
                                   float introElapsed,
+                                  float2 introParams,
                                   float4 tuningA,
                                   float4 tuningB,
                                   float3 washParams,
@@ -252,11 +284,13 @@ inline half3 intelligenceLightColor(
   float2 center = size * 0.5;
   float2 p = position - center;
 
-  // Intro scales thickness on both sides at once: from ~0 at t=0 up
-  // to ~1.08 around p=0.8, settling at 1.0. Combined with the burst
-  // envelope (color churn + brightness pop) this reproduces the
-  // Apple-Intelligence frame-grows-in-thickness intro.
-  float introMul = introScale(introElapsed);
+  float introDuration = introParams.x;
+  bool useBorderFill  = introParams.y > 0.5;
+
+  // Intro style branches: thicknessGrow scales the band size on appear;
+  // borderFill keeps the band at full size but masks where it shows so
+  // it appears to draw around the perimeter from a starting edge.
+  float introMul = useBorderFill ? 1.0 : introScale(introElapsed, introDuration);
   float effectiveBorder = borderWidth * introMul;
   float effectiveGlow   = glowSize   * introMul;
 
@@ -293,6 +327,15 @@ inline half3 intelligenceLightColor(
   // shimmers even at rest
   float flicker = 0.88 + 0.18 * (waveValue * 0.5 + 0.5);
   maskIntensity *= flicker;
+
+  // borderFill style masks the edge band so it appears to draw itself
+  // around the perimeter from the direction's start edge. No-op when
+  // introStyle == thicknessGrow.
+  if (useBorderFill) {
+    float startPerimT = perimeterStartFromDirection(washDirection);
+    float fillMask = borderFillMask(position, size, startPerimT, introElapsed, introDuration);
+    maskIntensity *= fillMask;
+  }
 
   // Travelling intro wash: each pixel sees its own brief pulse, delayed
   // by distance from the frame's centre. Combined with noise modulation

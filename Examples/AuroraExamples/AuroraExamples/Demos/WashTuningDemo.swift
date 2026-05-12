@@ -5,14 +5,16 @@ struct WashTuningDemo: View {
   private static let defaultSweep: Float = 0.11
   private static let defaultPulse: Float = 0.35
   private static let defaultPeak: Float = 0.08
-  private static let defaultDirectionX: Float = -1.0
-  private static let defaultDirectionY: Float = 0.0
+  private static let defaultIntroDuration: Float = 0.7
+  private static let defaultDirection: AuroraGlow.Direction = .rightToLeft
+  private static let defaultIntroStyle: AuroraGlow.IntroStyle = .thicknessGrow
 
   @State private var sweepDuration: Float = 0.11
   @State private var pulseWidth: Float = 0.35
   @State private var peak: Float = 0.08
-  @State private var directionX: Float = -1.0
-  @State private var directionY: Float = 0.0
+  @State private var introDuration: Float = 0.7
+  @State private var direction: AuroraGlow.Direction = .rightToLeft
+  @State private var introStyle: AuroraGlow.IntroStyle = .thicknessGrow
   @State private var replayKey = 0
 
   var body: some View {
@@ -22,8 +24,9 @@ struct WashTuningDemo: View {
         .washSweepDuration(sweepDuration)
         .washPulseWidth(pulseWidth)
         .washPeak(peak)
-        .washDirectionX(directionX)
-        .washDirectionY(directionY)
+        .direction(direction)
+        .introStyle(introStyle)
+        .introDuration(introDuration)
         .ignoresSafeArea()
         .id(replayKey)
       VStack {
@@ -32,8 +35,9 @@ struct WashTuningDemo: View {
           sweepDuration: $sweepDuration,
           pulseWidth: $pulseWidth,
           peak: $peak,
-          directionX: $directionX,
-          directionY: $directionY,
+          introDuration: $introDuration,
+          direction: $direction,
+          introStyle: $introStyle,
           onReplay: replay,
           onReset: resetDefaults
         )
@@ -52,8 +56,9 @@ struct WashTuningDemo: View {
     sweepDuration = Self.defaultSweep
     pulseWidth = Self.defaultPulse
     peak = Self.defaultPeak
-    directionX = Self.defaultDirectionX
-    directionY = Self.defaultDirectionY
+    introDuration = Self.defaultIntroDuration
+    direction = Self.defaultDirection
+    introStyle = Self.defaultIntroStyle
     replay()
   }
 }
@@ -62,13 +67,22 @@ private struct WashControlPanel: View {
   @Binding var sweepDuration: Float
   @Binding var pulseWidth: Float
   @Binding var peak: Float
-  @Binding var directionX: Float
-  @Binding var directionY: Float
+  @Binding var introDuration: Float
+  @Binding var direction: AuroraGlow.Direction
+  @Binding var introStyle: AuroraGlow.IntroStyle
   let onReplay: () -> Void
   let onReset: () -> Void
 
   var body: some View {
-    VStack(spacing: 14) {
+    VStack(spacing: 12) {
+      IntroStylePicker(style: $introStyle)
+      DirectionPicker(direction: $direction)
+      WashSlider(
+        label: "Intro",
+        value: $introDuration,
+        range: 0.15...2.0,
+        format: "%.2fs"
+      )
       WashSlider(
         label: "Sweep",
         value: $sweepDuration,
@@ -85,18 +99,6 @@ private struct WashControlPanel: View {
         label: "Peak",
         value: $peak,
         range: 0.0...0.8,
-        format: "%.2f"
-      )
-      WashSlider(
-        label: "Dir X",
-        value: $directionX,
-        range: -1.0...1.0,
-        format: "%.2f"
-      )
-      WashSlider(
-        label: "Dir Y",
-        value: $directionY,
-        range: -1.0...1.0,
         format: "%.2f"
       )
       HStack(spacing: 12) {
@@ -117,6 +119,34 @@ private struct WashControlPanel: View {
     )
     .padding(.horizontal, 12)
     .padding(.bottom, 12)
+  }
+}
+
+private struct IntroStylePicker: View {
+  @Binding var style: AuroraGlow.IntroStyle
+
+  var body: some View {
+    Picker("Intro style", selection: $style) {
+      Text("Thickness").tag(AuroraGlow.IntroStyle.thicknessGrow)
+      Text("Border fill").tag(AuroraGlow.IntroStyle.borderFill)
+    }
+    .pickerStyle(.segmented)
+    .colorScheme(.dark)
+  }
+}
+
+private struct DirectionPicker: View {
+  @Binding var direction: AuroraGlow.Direction
+
+  var body: some View {
+    Picker("Direction", selection: $direction) {
+      Text("L→R").tag(AuroraGlow.Direction.leftToRight)
+      Text("R→L").tag(AuroraGlow.Direction.rightToLeft)
+      Text("T→B").tag(AuroraGlow.Direction.topToBottom)
+      Text("B→T").tag(AuroraGlow.Direction.bottomToTop)
+    }
+    .pickerStyle(.segmented)
+    .colorScheme(.dark)
   }
 }
 
