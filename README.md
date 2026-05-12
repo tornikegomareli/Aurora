@@ -15,13 +15,13 @@ Aurora is a native SwiftUI component that draws an animated colourful ring aroun
 ## Showcase
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/0bad4fe6-30d4-4e68-ba50-2e3af6d8518a" width="30%" autoplay loop muted playsinline></video>
-  <video src="https://github.com/user-attachments/assets/2b37a67d-3343-4fc9-a8c7-c6df91079811" width="30%" autoplay loop muted playsinline></video>
-  <video src="https://github.com/user-attachments/assets/a7f2fca1-4193-4dc9-8d21-9c184b7877c9" width="30%" autoplay loop muted playsinline></video>
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-1" width="30%" />
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-2" width="30%" />
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-3" width="30%" />
 </p>
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-4" width="40%" autoplay loop muted playsinline></video>
-  <video src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-5" width="40%" autoplay loop muted playsinline></video>
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-4" width="40%" />
+  <img src="https://github.com/user-attachments/assets/PLACEHOLDER-AURORA-GIF-5" width="40%" />
 </p>
 
 ## Installation
