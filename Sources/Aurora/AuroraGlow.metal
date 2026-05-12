@@ -22,16 +22,23 @@
 
 using namespace metal;
 
-constant half3 kColorBase   = half3(0.000h, 0.588h, 1.000h);
-constant half3 kColorPurple = half3(0.983h, 0.392h, 1.000h);
-constant half3 kColorPink   = half3(1.000h, 0.145h, 0.333h);
-constant half3 kColorOrange = half3(1.000h, 0.577h, 0.000h);
-constant half3 kColorCyan   = half3(0.000h, 0.588h, 1.000h);
-
-constant half3 kAnchorColors[11] = {
-  kColorPurple, kColorPink, kColorOrange, kColorCyan, kColorOrange,
-  kColorPurple, kColorPink, kColorCyan, kColorPink, kColorOrange, kColorPurple,
-};
+// Anchor colors are no longer constants — they come from caller-
+// supplied palette uniforms (paletteBase, paletteA..paletteD). The
+// 11 anchor positions cycle through the four anchor colours in a
+// fixed pattern: a, b, c, d, c, a, b, d, b, c, a.
+inline half3 anchorColorAt(int i, half3 a, half3 b, half3 c, half3 d) {
+  if (i == 0)  return a;
+  if (i == 1)  return b;
+  if (i == 2)  return c;
+  if (i == 3)  return d;
+  if (i == 4)  return c;
+  if (i == 5)  return a;
+  if (i == 6)  return b;
+  if (i == 7)  return d;
+  if (i == 8)  return b;
+  if (i == 9)  return c;
+  return a;
+}
 
 constant float2 kAnchorFreq[11] = {
   float2(0.31, 0.27), float2(0.43, 0.19), float2(0.17, 0.37),
@@ -236,15 +243,18 @@ inline half3 intelligenceLightColor(
                                     float2 xyPos, float2 size,
                                     float time, float burstT,
                                     float ampBoost, float speedBoost, float decay,
-                                    float reach, float power
+                                    float reach, float power,
+                                    half3 paletteBase,
+                                    half3 paletteA, half3 paletteB,
+                                    half3 paletteC, half3 paletteD
                                     ) {
-  half3 color = kColorBase;
+  half3 color = paletteBase;
   for (int i = 0; i < 11; ++i) {
     float2 a = anchorPosition(i, time, burstT, ampBoost, speedBoost, decay, size);
     float d = length(a - xyPos) / reach;
     float fall = clamp(1.0 - d, 0.0, 1.0);
     float t = fall * fall * (3.0 - 2.0 * fall);
-    color = mix(color, kAnchorColors[i], half(t));
+    color = mix(color, anchorColorAt(i, paletteA, paletteB, paletteC, paletteD), half(t));
   }
   color = min(color, half3(1.0h));
   
@@ -272,7 +282,12 @@ inline half3 intelligenceLightColor(
                                   float4 tuningA,
                                   float4 tuningB,
                                   float3 washParams,
-                                  float2 washDirection
+                                  float2 washDirection,
+                                  float3 paletteBase,
+                                  float3 paletteA,
+                                  float3 paletteB,
+                                  float3 paletteC,
+                                  float3 paletteD
                                   ) {
   float anchorAmpBoost   = tuningA.x;
   float anchorSpeedBoost = tuningA.y;
@@ -354,7 +369,10 @@ inline half3 intelligenceLightColor(
                                      position, size,
                                      time, burstElapsed,
                                      anchorAmpBoost, anchorSpeedBoost, decayRate,
-                                     reach, 0.0
+                                     reach, 0.0,
+                                     half3(paletteBase),
+                                     half3(paletteA), half3(paletteB),
+                                     half3(paletteC), half3(paletteD)
                                      );
   
   lit *= half(0.95 * burstBrightness(burstElapsed, brightnessPop, decayRate));

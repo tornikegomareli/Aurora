@@ -73,6 +73,12 @@ extension AuroraGlow {
     with(\.introDuration, value)
   }
 
+  public func palette(
+    _ value: Palette
+  ) -> Self {
+    with(\.palette, value)
+  }
+
   public func burster(
     _ value: Burster?
   ) -> Self {

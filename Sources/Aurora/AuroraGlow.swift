@@ -14,6 +14,7 @@ public struct AuroraGlow: View {
   public var direction: Direction = .topToBottom
   public var introStyle: IntroStyle = .borderFill
   public var introDuration: Float = 0.5
+  public var palette: Palette = .appleIntelligence
   public var burster: Burster?
 
   @State private var startDate = Date()
@@ -90,6 +91,31 @@ public struct AuroraGlow: View {
           .float2(
             CGFloat(direction.vector.x),
             CGFloat(direction.vector.y)
+          ),
+          .float3(
+            CGFloat(palette.base.x),
+            CGFloat(palette.base.y),
+            CGFloat(palette.base.z)
+          ),
+          .float3(
+            CGFloat(palette.anchors[0].x),
+            CGFloat(palette.anchors[0].y),
+            CGFloat(palette.anchors[0].z)
+          ),
+          .float3(
+            CGFloat(palette.anchors[1].x),
+            CGFloat(palette.anchors[1].y),
+            CGFloat(palette.anchors[1].z)
+          ),
+          .float3(
+            CGFloat(palette.anchors[2].x),
+            CGFloat(palette.anchors[2].y),
+            CGFloat(palette.anchors[2].z)
+          ),
+          .float3(
+            CGFloat(palette.anchors[3].x),
+            CGFloat(palette.anchors[3].y),
+            CGFloat(palette.anchors[3].z)
           )
         )
       )
