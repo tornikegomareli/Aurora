@@ -98,6 +98,17 @@ inline float introScale(float t, float duration) {
   return ease * (1.0 + bump);
 }
 
+// Heartbeat envelope: base growth with damped oscillations on top, so
+// the band visibly pulses 2–3 times before settling. The exponential
+// decay term reduces the amplitude of each successive pulse.
+inline float introScaleHeartbeat(float t, float duration) {
+  if (t < 0.0 || t >= duration) return 1.0;
+  float p = t / duration;
+  float base = 1.0 - pow(1.0 - p, 2.0);
+  float pulses = 0.35 * exp(-p * 3.5) * cos(p * 6.28318 * 2.8);
+  return clamp(base + pulses, 0.0, 1.5);
+}
+
 // Intro envelope (borderFill style): mask that "fills" the perimeter
 // from the direction's start edge, sweeping around both ways and
 // meeting itself at the opposite side. Uses the angle from the
@@ -300,12 +311,22 @@ inline half3 intelligenceLightColor(
   float2 p = position - center;
 
   float introDuration = introParams.x;
-  bool useBorderFill  = introParams.y > 0.5;
+  float styleId       = introParams.y;
+  bool useBorderFill  = styleId > 0.5 && styleId < 1.5;
+  bool useHeartbeat   = styleId > 1.5;
 
-  // Intro style branches: thicknessGrow scales the band size on appear;
-  // borderFill keeps the band at full size but masks where it shows so
-  // it appears to draw around the perimeter from a starting edge.
-  float introMul = useBorderFill ? 1.0 : introScale(introElapsed, introDuration);
+  // Intro style branches:
+  //   0 thicknessGrow — band scales from invisible to full size
+  //   1 borderFill    — band stays full but masked along the perimeter
+  //   2 heartbeat     — thickness pulses 2–3 times before settling
+  float introMul;
+  if (useBorderFill) {
+    introMul = 1.0;
+  } else if (useHeartbeat) {
+    introMul = introScaleHeartbeat(introElapsed, introDuration);
+  } else {
+    introMul = introScale(introElapsed, introDuration);
+  }
   float effectiveBorder = borderWidth * introMul;
   float effectiveGlow   = glowSize   * introMul;
 

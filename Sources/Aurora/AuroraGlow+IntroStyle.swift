@@ -13,10 +13,16 @@ extension AuroraGlow {
     /// the opposite side. Reads like a frame drawing itself.
     case borderFill
 
+    /// Thickness pulses 2–3 times before settling — a damped
+    /// oscillation on top of the basic ease-out. Useful for
+    /// notification-style "attention" intros.
+    case heartbeat
+
     internal var shaderValue: Float {
       switch self {
       case .thicknessGrow: return 0.0
       case .borderFill:    return 1.0
+      case .heartbeat:     return 2.0
       }
     }
   }
