@@ -110,3 +110,43 @@ struct InitTests {
     #expect(glow.introOnAppear == false)
   }
 }
+
+@Suite("AuroraText")
+struct AuroraTextTests {
+
+  @Test func defaultsMatchDocumentedValues() {
+    let text = AuroraText("Hi")
+    #expect(text.content == "Hi")
+    #expect(text.speed == 0.12)
+    #expect(text.palette == .appleIntelligence)
+  }
+
+  @Test func chainableModifiersReturnUpdatedCopy() {
+    let text = AuroraText("Hi")
+      .palette(.sunset)
+      .speed(0.3)
+    #expect(text.palette == .sunset)
+    #expect(text.speed == 0.3)
+  }
+
+  @Test func listeningMoodApplesIntelligencePaletteAndSpeedUp() {
+    let base = AuroraText("Hi")
+    let listening = base.mood(.listening)
+    #expect(listening.palette == .appleIntelligence)
+    #expect(listening.speed > base.speed)
+  }
+
+  @Test func thinkingMoodSwitchesPaletteAndSlowsDown() {
+    let base = AuroraText("Hi")
+    let thinking = base.mood(.thinking)
+    #expect(thinking.palette == .ocean)
+    #expect(thinking.speed < base.speed)
+  }
+
+  @Test func neutralMoodIsNoOp() {
+    let base = AuroraText("Hi").palette(.sunset).speed(0.3)
+    let after = base.mood(.neutral)
+    #expect(after.palette == .sunset)
+    #expect(after.speed == 0.3)
+  }
+}

@@ -429,3 +429,33 @@ inline half3 intelligenceLightColor(
   maskIntensity *= outroAlpha;
   return half4(lit * half(maskIntensity), half(maskIntensity));
 }
+
+/// Standalone metaball colour field for filling arbitrary shapes
+/// (glyphs, paths, masks) with the same animated palette used by the
+/// glow ring. Strips out all SDF, edge band, burst envelope, intro,
+/// outro, and wash logic — only the multi-anchor colour blend
+/// remains, so SwiftUI compositing handles the alpha mask
+/// (anti-aliased glyph edges from `Text.foregroundStyle`, fills from
+/// `Shape.fill`, etc.). Returns RGB with alpha 1.0.
+[[ stitchable ]] half4 auroraShimmer(
+  float2 position,
+  float2 size,
+  float time,
+  float3 paletteBase,
+  float3 paletteA,
+  float3 paletteB,
+  float3 paletteC,
+  float3 paletteD
+) {
+  float reach = 0.55 * max(size.x, size.y);
+  half3 lit = intelligenceLightColor(
+    position, size,
+    time, -1.0,
+    0.0, 0.0, 1.0,
+    reach, 0.0,
+    half3(paletteBase),
+    half3(paletteA), half3(paletteB),
+    half3(paletteC), half3(paletteD)
+  );
+  return half4(lit, 1.0h);
+}

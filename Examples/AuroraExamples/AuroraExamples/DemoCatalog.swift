@@ -2,6 +2,7 @@ import SwiftUI
 
 enum Demo: String, CaseIterable, Identifiable {
   case hero
+  case text
   case liveTuning
   case customProfile
   case washTuning
@@ -14,6 +15,7 @@ enum Demo: String, CaseIterable, Identifiable {
   var title: String {
     switch self {
     case .hero: return "Hero"
+    case .text: return "AuroraText"
     case .liveTuning: return "Live tuning"
     case .customProfile: return "Custom Profile"
     case .washTuning: return "Wash tuning"
@@ -26,6 +28,7 @@ enum Demo: String, CaseIterable, Identifiable {
   var subtitle: String {
     switch self {
     case .hero: return "Full-screen dramatic glow"
+    case .text: return "Shimmering Apple-Intelligence text"
     case .liveTuning: return "Tweak every knob live"
     case .customProfile: return "Build a Profile by hand"
     case .washTuning: return "Dial the intro wash pulse"
@@ -38,6 +41,7 @@ enum Demo: String, CaseIterable, Identifiable {
   var systemImage: String {
     switch self {
     case .hero: return "star.fill"
+    case .text: return "textformat.alt"
     case .liveTuning: return "slider.horizontal.3"
     case .customProfile: return "waveform.path"
     case .washTuning: return "drop.fill"
