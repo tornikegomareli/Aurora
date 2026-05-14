@@ -28,14 +28,14 @@ struct TextDemo: View {
         Spacer()
 
         AuroraText("Aurora\nIntelligence")
+          .palette(palette)
           .font(.system(size: 52, weight: .heavy, design: .rounded))
           .multilineTextAlignment(.center)
-          .palette(palette)
 
         AuroraText(streamed.isEmpty ? " " : streamed)
+          .palette(palette)
           .font(.system(size: 22, weight: .semibold, design: .rounded))
           .multilineTextAlignment(.center)
-          .palette(palette)
           .padding(.horizontal, 24)
           .frame(minHeight: 110)
 
