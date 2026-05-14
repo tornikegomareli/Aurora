@@ -5,6 +5,7 @@ struct TextDemo: View {
   @State private var selectedIndex = 0
   @State private var streamed: String = ""
   @State private var isStreaming = false
+  @State private var speed: Double = 0.12
 
   private let entries: [(name: String, palette: AuroraGlow.Palette)] = [
     ("Apple Intelligence", .appleIntelligence),
@@ -29,11 +30,13 @@ struct TextDemo: View {
 
         AuroraText("Aurora\nIntelligence")
           .palette(palette)
+          .speed(speed)
           .font(.system(size: 52, weight: .heavy, design: .rounded))
           .multilineTextAlignment(.center)
 
         AuroraText(streamed.isEmpty ? " " : streamed)
           .palette(palette)
+          .speed(speed)
           .font(.system(size: 22, weight: .semibold, design: .rounded))
           .multilineTextAlignment(.center)
           .padding(.horizontal, 24)
@@ -42,6 +45,8 @@ struct TextDemo: View {
         streamButton
 
         Spacer()
+
+        SpeedSlider(value: $speed)
 
         PaletteRow(
           entries: entries,
@@ -89,6 +94,33 @@ struct TextDemo: View {
       }
       isStreaming = false
     }
+  }
+}
+
+private struct SpeedSlider: View {
+  @Binding var value: Double
+
+  var body: some View {
+    HStack(spacing: 12) {
+      Text("Speed")
+        .font(.system(size: 12, weight: .medium, design: .monospaced))
+        .foregroundStyle(.white.opacity(0.65))
+        .frame(width: 56, alignment: .leading)
+      Slider(value: $value, in: 0.02...0.6)
+        .tint(.white)
+      Text(String(format: "%.2f", value))
+        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+        .foregroundStyle(.white)
+        .frame(width: 52, alignment: .trailing)
+    }
+    .padding(.horizontal, 18)
+    .padding(.vertical, 10)
+    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+    )
+    .padding(.horizontal, 16)
   }
 }
 
