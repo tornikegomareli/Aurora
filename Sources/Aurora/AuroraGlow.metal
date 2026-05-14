@@ -447,10 +447,16 @@ inline half3 intelligenceLightColor(
   float3 paletteC,
   float3 paletteD
 ) {
+  // AuroraGlow's visible motion comes mostly from the burst envelope's
+  // 2π phase advance over its first ~2 seconds; text has no burst, so
+  // at the same `speed` value the steady-state anchors barely seem to
+  // move. Scale time here so AuroraText at the default speed reads as
+  // a live shimmer instead of a slowly drifting gradient.
+  float shimmerTime = time * 10.0;
   float reach = 0.55 * max(size.x, size.y);
   half3 lit = intelligenceLightColor(
     position, size,
-    time, -1.0,
+    shimmerTime, -1.0,
     0.0, 0.0, 1.0,
     reach, 0.0,
     half3(paletteBase),
