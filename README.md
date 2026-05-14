@@ -18,6 +18,12 @@ Most accurate simple customizable SwiftUI components for the Apple Intelligence 
   <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.3.0/demo33.gif" width="30%" />
 </p>
 
+<p align="center">
+  <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.4.0/auroratext1.gif" width="30%" />
+  <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.4.0/auroratext2.gif" width="30%" />
+  <img src="https://github.com/tornikegomareli/Aurora/releases/download/0.4.0/auroratext3.gif" width="30%" />
+</p>
+
 ## Installation
 
 ### Swift Package Manager
