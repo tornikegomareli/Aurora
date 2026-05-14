@@ -1,6 +1,9 @@
 <p align="center">
   <h1 align="center">Aurora</h1>
 </p>
+
+Most accurate simple customizable SwiftUI components for the Apple Intelligence look — an animated glow ring and a shimmering text fill, both backed by Metal shaders.
+
 <p align="center">
   <img src="https://img.shields.io/badge/Swift-5.9+-orange.svg" />
   <img src="https://img.shields.io/badge/iOS-17.0+-blue.svg" />
@@ -21,7 +24,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/tornikegomareli/Aurora.git", from: "0.3.0")
+    .package(url: "https://github.com/tornikegomareli/Aurora.git", from: "0.4.0")
 ]
 ```
 
@@ -197,9 +200,47 @@ AuroraGlow(.standard)
 
 Every modifier returns a new `AuroraGlow`, just like SwiftUI built-ins.
 
+## AuroraText
+
+Fill SwiftUI `Text` glyphs with the same animated metaball colour field — the iconic Apple-Intelligence shimmering text look:
+
+```swift
+import SwiftUI
+import Aurora
+
+AuroraText("Apple Intelligence")
+    .palette(.appleIntelligence)
+    .speed(0.4)
+    .font(.system(size: 56, weight: .heavy, design: .rounded))
+```
+
+`AuroraText` is a drop-in for `Text` — `.font`, `.fontWeight`, `.kerning`, `.multilineTextAlignment` and every other text-style environment value all work via the underlying `Text`. Chain `.palette`, `.speed`, or `.mood` first (those return `AuroraText`), then any SwiftUI modifier you want.
+
+It pairs naturally with `AuroraGlow` for matching palettes:
+
+```swift
+ZStack {
+    Color.black.ignoresSafeArea()
+    AuroraText("Aurora\nIntelligence")
+        .palette(.sunset)
+        .font(.system(size: 56, weight: .heavy, design: .rounded))
+        .multilineTextAlignment(.center)
+}
+.overlay {
+    AuroraGlow(.standard).palette(.sunset).ignoresSafeArea()
+}
+```
+
+Mood presets bundle palette + pace for state-aware UI in one line — same vocabulary as `AuroraGlow.mood`:
+
+```swift
+AuroraText("Thinking…").mood(.thinking)   // ocean palette, slower
+AuroraText("Listening").mood(.listening)  // appleIntelligence, faster
+```
+
 ## Examples
 
-`AuroraExamples` (Xcode project under `Examples/AuroraExamples`) ships seven demo screens — hero, live tuning, custom profile, wash tuning, palette gallery, moods, and a `glowWhileLoading` sandbox. Open the project to play with them.
+`AuroraExamples` (Xcode project under `Examples/AuroraExamples`) ships eight demo screens — hero, AuroraText, live tuning, custom profile, wash tuning, palette gallery, moods, and a `glowWhileLoading` sandbox. Open the project to play with them.
 
 ## Requirements
 
