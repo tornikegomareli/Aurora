@@ -7,6 +7,7 @@ Most accurate simple customizable SwiftUI components for the Apple Intelligence 
 <p align="center">
   <img src="https://img.shields.io/badge/Swift-5.9+-orange.svg" />
   <img src="https://img.shields.io/badge/iOS-17.0+-blue.svg" />
+  <img src="https://img.shields.io/badge/macOS-14.0+-blue.svg" />
   <img src="https://img.shields.io/badge/SwiftUI-Native-green.svg" />
 </p>
 
@@ -30,7 +31,7 @@ Most accurate simple customizable SwiftUI components for the Apple Intelligence 
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/tornikegomareli/Aurora.git", from: "0.4.0")
+    .package(url: "https://github.com/tornikegomareli/Aurora.git", from: "0.5.0")
 ]
 ```
 
@@ -250,9 +251,9 @@ AuroraText("Listening").mood(.listening)  // appleIntelligence, faster
 
 ## Requirements
 
-- iOS 17+
+- iOS 17+ / macOS 14+
 - Swift 5.9+
-- The shader uses `ShaderLibrary` / `colorEffect`, which are iOS 17 only.
+- The shader uses `ShaderLibrary` / `colorEffect`, which need iOS 17 / macOS 14.
 
 ## Credits
 
