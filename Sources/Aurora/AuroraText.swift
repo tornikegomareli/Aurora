@@ -45,7 +45,7 @@ public struct AuroraText: View {
   private func shader(at time: Double) -> Shader {
     let w = max(size.width, 1)
     let h = max(size.height, 1)
-    return ShaderLibrary.bundle(.module).auroraShimmer(
+    return ShaderLibrary.aurora.auroraShimmer(
       .float2(w, h),
       .float(time),
       .float3(

@@ -16,7 +16,14 @@ let package = Package(
   ],
   targets: [
     .target(
-      name: "Aurora"
-    )
+      name: "Aurora",
+      // Compiled into Metallibs/ by Scripts/build_metallibs.sh: command-line SwiftPM can't compile Metal.
+      exclude: ["AuroraGlow.metal"],
+      resources: [.copy("Metallibs")]
+    ),
+    .testTarget(
+      name: "AuroraTests",
+      dependencies: ["Aurora"]
+    ),
   ]
 )

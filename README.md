@@ -255,6 +255,12 @@ AuroraText("Listening").mood(.listening)  // appleIntelligence, faster
 - Swift 5.9+
 - The shader uses `ShaderLibrary` / `colorEffect`, which need iOS 17 / macOS 14.
 
+## Changing the shaders
+
+Command-line SwiftPM (`swift build`) can't compile Metal, so Aurora ships its shaders precompiled in
+`Sources/Aurora/Metallibs`, one library each for macOS, iOS, and the iOS simulator. After you edit
+`AuroraGlow.metal`, run `Scripts/build_metallibs.sh` and commit the new metallibs.
+
 ## Credits
 
 The visual feel is reverse-engineered from Apple's `IntelligentLightFrag` shader in `SiriUICore.framework`. None of Apple's binary code is included, only the algorithm (anchored metaballs + noise-warped SDF + damped-cosine burst envelope) is reproduced.

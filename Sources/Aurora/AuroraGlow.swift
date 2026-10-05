@@ -76,7 +76,7 @@ public struct AuroraGlow: View {
     let t = profile
     return Rectangle()
       .colorEffect(
-        ShaderLibrary.bundle(.module).auroraGlow(
+        ShaderLibrary.aurora.auroraGlow(
           .float2(size),
           .float(elapsed * speed),
           .float(cornerRadius),

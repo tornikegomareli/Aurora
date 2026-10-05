@@ -1,4 +1,6 @@
 import Foundation
+import Metal
+import SwiftUI
 import Testing
 
 @testable import Aurora
@@ -148,5 +150,17 @@ struct AuroraTextTests {
     let after = base.mood(.neutral)
     #expect(after.palette == .sunset)
     #expect(after.speed == 0.3)
+  }
+}
+
+@Suite("Shaders")
+struct ShaderTests {
+
+  @Test func thePrecompiledLibraryLoadsOnThisPlatform() throws {
+    let url = try #require(ShaderLibrary.auroraLibraryURL)
+    let device = try #require(MTLCreateSystemDefaultDevice())
+    let names = try device.makeLibrary(URL: url).functionNames
+    #expect(names.contains("auroraGlow"))
+    #expect(names.contains("auroraShimmer"))
   }
 }
